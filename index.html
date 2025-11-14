@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loading...</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide-react@0.311.0/dist/lucide-react.js"></script>
+
+    <style>
+        /* Base styles */
+        body {
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #888; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
+        .dark ::-webkit-scrollbar-track { background: #2d3748; }
+        .dark ::-webkit-scrollbar-thumb { background: #718096; }
+        .dark ::-webkit-scrollbar-thumb:hover { background: #a0aec0; }
+        /* Loading spinner */
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: #09f;
+            animation: spin 1s ease infinite;
+        }
+        .dark .spinner { border-left-color: #38b2ac; }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* Modal backdrop */
+        .modal-backdrop {
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        /* Custom background */
+        body {
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            transition: background-image 0.5s ease-in-out;
+        }
+    </style>
+    <script>
+        // Tailwind dark mode config
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
+
+    <!-- ===== LOADING OVERLAY ===== -->
+    <div id="app-loading" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white dark:bg-gray-900">
+        <div class="spinner"></div>
+        <p class="mt-4 text-lg font-medium text-gray-700 dark:text-gray-300">Connecting to HOG Network...</p>
+        <p id="auth-status" class="text-sm text-gray-500"></p>
+    </div>
+
+    <!-- ===== USER VIEW ===== -->
+    <div id="user-view">
+        <!-- Header -->
+        <header class="sticky top-0 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md shadow-sm">
+            <nav class="container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+                    <img id="user-logo" src="https://placehold.co/150x50/000000/FFFFFF?text=HOG+Network" alt="Logo" class="h-10 w-auto rounded-md">
+                    <span id="user-web-name" class="text-2xl font-bold text-gray-800 dark:text-white">HOG Network</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button id="dark-mode-toggle" class="p-2 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700">
+                        <!-- Moon Icon -->
+                        <svg id="theme-icon-dark" class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                        </svg>
+                        <!-- Sun Icon -->
+                        <svg id="theme-icon-light" class="h-6 w-6 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m8.66-15.66l-.7.7m-12.73 0l-.7-.7m14.14 0l-.7-.7m-12.73 0l-.7.7M21 12h-1M4 12H3m16.66-7.66l-.7-.7M5.05 5.05l-.7.7M17 17l-.7.7M5.76 18.24l-.7-.7" />
+                        </svg>
+                    </button>
+                    <a href="admin.html" class="text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">Admin</a>
+                </div>
+            </nav>
+        </header>
+
+        <!-- Notification Bar -->
+        <div id="user-notification-bar" class="bg-blue-600 text-white text-center p-3 hidden">
+            <span id="user-notification-text"></span>
+        </div>
+
+        <!-- Main Content -->
+        <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <h1 class="text-3xl sm:text-4xl font-bold text-center mb-4">Welcome to <span id="user-web-name-2">HOG Network</span></h1>
+            <p class="text-lg text-gray-600 dark:text-gray-300 text-center mb-10">Select a data plan to get started.</p>
+
+            <!-- Data Plan Grid -->
+            <div id="plan-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Plan cards will be injected here -->
+            </div>
+        </main>
+
+        <!-- WhatsApp Contact Button -->
+        <a id="whatsapp-contact" href="#" target="_blank" class="fixed bottom-6 right-6 bg-green-500 text-white p-4 rounded-full shadow-lg hover:bg-green-600 transition duration-300 z-50 flex items-center space-x-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-circle-more"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M8 12h.01"/><path d="M12 12h.01"/><path d="M16 12h.01"/></svg>
+            <span>Contact Admin</span>
+        </a>
+    </div>
+
+    <!-- ===== PAYMENT MODAL ===== -->
+    <div id="payment-modal" class="hidden fixed inset-0 z-50 overflow-y-auto modal-backdrop flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-lg">
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center p-5 border-b border-gray-200 dark:border-gray-700">
+                <h3 class="text-2xl font-semibold">Payment Details</h3>
+                <button id="close-modal-btn" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                    <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+            
+            <!-- Modal Body -->
+            <div class="p-6">
+                <div class="mb-4">
+                    <h4 class="text-xl font-medium" id="modal-plan-name">Plan Name</h4>
+                    <p class="text-3xl font-bold text-blue-600 dark:text-blue-400" id="modal-plan-price">₦0</p>
+                    <p class="text-gray-600 dark:text-gray-300" id="modal-plan-validity">Validity</p>
+                </div>
+
+                <!-- Tabs -->
+                <div class="mb-4 border-b border-gray-200 dark:border-gray-700">
+                    <nav class="flex space-x-4" aria-label="Tabs">
+                        <button id="tab-paystack" class="payment-tab whitespace-nowrap pb-3 px-1 border-b-2 font-medium text-sm text-blue-600 dark:text-blue-400 border-blue-500">
+                            Paystack
+                        </button>
+                        <button id="tab-manual" class="payment-tab whitespace-nowrap pb-3 px-1 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-transparent">
+                            Manual Bank Transfer
+                        </button>
+                    </nav>
+                </div>
+
+                <!-- Paystack Content -->
+                <div id="content-paystack" class="payment-tab-content">
+                    <p class="mb-4 text-gray-600 dark:text-gray-300">Click the button below to pay securely with Paystack.</p>
+                    <a id="paystack-link" href="#" target="_blank" class="w-full text-center bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-md transition duration-150 inline-block">
+                        Pay Now
+                    </a>
+                    <p class="mt-4 text-sm text-gray-500">After payment, please contact the admin on WhatsApp to receive your voucher code.</p>
+                </div>
+
+                <!-- Manual Payment Content -->
+                <div id="content-manual" class="payment-tab-content hidden">
+                    <p class="mb-4 text-gray-600 dark:text-gray-300">Transfer the exact amount to the account details below. After payment, submit your details for confirmation.</p>
+                    <div class="bg-gray-100 dark:bg-gray-700 p-4 rounded-md mb-4">
+                        <p><strong>Bank:</strong> <span id="manual-bank-name"></span></p>
+                        <p><strong>Account Number:</strong> <span id="manual-account-number"></span></p>
+                        <p><strong>Account Name:</strong> <span id="manual-account-name"></span></p>
+                    </div>
+                    <form id="manual-payment-form">
+                        <input type="hidden" id="manual-plan-name">
+                        <input type="hidden" id="manual-plan-price">
+                        <div class="mb-4">
+                            <label for="user-contact" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Your Name or WhatsApp Number</label>
+                            <input type="text" id="user-contact" required placeholder="So we can identify you" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm dark:bg-gray-700">
+                        </div>
+                        <div class="mb-4">
+                            <label for="payment-proof" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Payment Proof (Screenshot URL)</label>
+                            <input type="text" id="payment-proof" required placeholder="Upload to imgbb.com, paste link" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm dark:bg-gray-700">
+                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">We can't upload files. Please upload screenshot to a site like imgbb.com and paste the link.</p>
+                        </div>
+                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition duration-150">
+                            Submit for Confirmation
+                        </button>
+                        <p id="manual-submit-status" class="text-green-500 text-sm mt-2 text-center"></p>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-10 right-10 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg hidden z-50">
+        <span id="toast-message"></span>
+    </div>
+
+    <!-- ===== Firebase and App Logic ===== -->
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { 
+            getFirestore, doc, getDoc, setDoc, 
+            collection, onSnapshot, addDoc, serverTimestamp,
+            setLogLevel
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- App State ---
+        let db, auth, userId, appId;
+        let currentSettings = {};
+
+        // --- Firebase Config ---
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+        // --- DOM Elements ---
+        const $ = (selector) => document.querySelector(selector);
+        const $$ = (selector) => document.querySelectorAll(selector);
+        const loadingEl = $('#app-loading');
+        const authStatusEl = $('#auth-status');
+        const paymentModalEl = $('#payment-modal');
+
+        // --- Toast Notification ---
+        function showToast(message, success = true) {
+            const toast = $('#toast');
+            const toastMessage = $('#toast-message');
+            toastMessage.textContent = message;
+            toast.classList.remove('hidden');
+            toast.classList.toggle('bg-green-600', success);
+            toast.classList.toggle('bg-red-600', !success);
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3000);
+        }
+
+        // --- Dark Mode ---
+        const html = document.documentElement;
+        const darkModeToggle = $('#dark-mode-toggle');
+        const themeIconDark = $('#theme-icon-dark');
+        const themeIconLight = $('#theme-icon-light');
+
+        const setMode = (dark) => {
+            if (dark) {
+                html.classList.add('dark');
+                themeIconDark.classList.add('hidden');
+                themeIconLight.classList.remove('hidden');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                html.classList.remove('dark');
+                themeIconDark.classList.remove('hidden');
+                themeIconLight.classList.add('hidden');
+                localStorage.setItem('theme', 'light');
+            }
+        };
+
+        darkModeToggle.addEventListener('click', () => {
+            setMode(!html.classList.contains('dark'));
+        });
+
+        // Check saved theme
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            setMode(true);
+        } else {
+            setMode(false);
+        }
+
+        // --- Firebase Initialization ---
+        async function initFirebase() {
+            try {
+                authStatusEl.textContent = 'Initializing app...';
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                setLogLevel('Debug');
+                authStatusEl.textContent = 'Authenticating...';
+
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        authStatusEl.textContent = `Authenticated as ${user.uid.substring(0, 8)}`;
+                        userId = user.uid;
+                        await checkAndInitDefaults();
+                        startAppListeners();
+                        loadingEl.classList.add('hidden');
+                    } else {
+                        // Not authenticated, try to sign in
+                        try {
+                            if (initialAuthToken) {
+                                await signInWithCustomToken(auth, initialAuthToken);
+                            } else {
+                                await signInAnonymously(auth);
+                            }
+                        } catch (err) {
+                            console.error('Sign-in error:', err);
+                            authStatusEl.textContent = 'Authentication failed. Please reload.';
+                        }
+                    }
+                });
+
+            } catch (err) {
+                console.error("Firebase init failed:", err);
+                authStatusEl.textContent = 'Error connecting to services. Check console.';
+            }
+        }
+
+        // --- Initial Data Seeding ---
+        async function checkAndInitDefaults() {
+            authStatusEl.textContent = 'Checking database...';
+            const settingsRef = doc(db, `artifacts/${appId}/public/data/settings`, 'config');
+            const settingsSnap = await getDoc(settingsRef);
+
+            if (!settingsSnap.exists()) {
+                authStatusEl.textContent = 'Setting up defaults...';
+                // Set default settings
+                await setDoc(settingsRef, {
+                    webName: "HOG Network",
+                    logoUrl: "https://placehold.co/150x50/000000/FFFFFF?text=HOG+Network",
+                    bgUrl: "https://placehold.co/1920x1080/EEEEEE/333333?text=Welcome",
+                    whatsApp: "+2349120461800",
+                    notification: "Welcome! Contact admin on WhatsApp for your voucher after payment.",
+                    adminEmail: "igweemmanuel@aol.com",
+                    merchantEmail: "igweemmanuel@aol.com",
+                    redirectUrl: "HOG Network",
+                    manualBank: {
+                        bankName: "OPAY BANK",
+                        accountNumber: "6142233479",
+                        accountName: "KIZZY COMMUNICATION LINK"
+                    }
+                });
+
+                // Set default admin credentials
+                const adminRef = doc(db, `artifacts/${appId}/public/data/admin`, 'credentials');
+                await setDoc(adminRef, {
+                    username: "admin",
+                    password: "password123"
+                });
+
+                // Set default plans
+                const plansCol = collection(db, `artifacts/${appId}/public/data/plans`);
+                await addDoc(plansCol, {
+                    data: "1GB", price: 320, validity: "24Hours", devices: 1, upload: 5, download: 8,
+                    paymentLink: "https://paystack.shop/pay/asyhox1k9b"
+                });
+                await addDoc(plansCol, {
+                    data: "12GB", price: 3400, validity: "12Days", devices: 1, upload: 5, download: 8,
+                    paymentLink: "https://paystack.shop/pay/wl5obvswf8"
+                });
+                await addDoc(plansCol, {
+                    data: "20GB", price: 5500, validity: "30Days", devices: 1, upload: 5, download: 8,
+                    paymentLink: "https://paystack.shop/pay/2w6t3iv586"
+                });
+                authStatusEl.textContent = 'Defaults set.';
+            }
+        }
+
+        // --- Real-time Listeners ---
+        function startAppListeners() {
+            // 1. Settings Listener
+            const settingsRef = doc(db, `artifacts/${appId}/public/data/settings`, 'config');
+            onSnapshot(settingsRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    currentSettings = docSnap.data();
+                    updateUISettings(currentSettings);
+                }
+            });
+
+            // 2. Plans Listener
+            const plansCol = collection(db, `artifacts/${appId}/public/data/plans`);
+            onSnapshot(plansCol, (snapshot) => {
+                let userPlanHtml = '';
+                snapshot.forEach(doc => {
+                    const plan = { ...doc.data(), id: doc.id };
+                    // Render for User View
+                    userPlanHtml += `
+                        <div class="bg-white dark:bg-gray-800 shadow-lg rounded-2xl p-6 transform hover:scale-105 transition-transform duration-300">
+                            <h3 class="text-2xl font-bold mb-2">${plan.data}</h3>
+                            <p class="text-4xl font-extrabold text-blue-600 dark:text-blue-400 mb-4">₦${plan.price}</p>
+                            <ul class="space-y-2 text-gray-600 dark:text-gray-300 mb-6">
+                                <li class="flex items-center"><svg class="h-5 w-5 text-green-500 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>${plan.validity}</li>
+                                <li class="flex items-center"><svg class="h-5 w-5 text-green-500 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>${plan.devices} Device(s)</li>
+                            </ul>
+                            <button class="buy-plan-btn w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-150"
+                                data-id="${plan.id}"
+                                data-name="${plan.data}"
+                                data-price="${plan.price}"
+                                data-validity="${plan.validity}"
+                                data-link="${plan.paymentLink}">
+                                Get Plan
+                            </button>
+                        </div>
+                    `;
+                });
+                $('#plan-list').innerHTML = userPlanHtml || '<p class="text-gray-500 col-span-full text-center">No data plans are available at this time.</p>';
+            });
+        }
+
+        // --- UI Update Functions ---
+        function updateUISettings(settings) {
+            // User View
+            document.title = settings.webName || "Voucher Portal";
+            $('#user-logo').src = settings.logoUrl || 'https://placehold.co/150x50/000000/FFFFFF?text=HOG+Network';
+            $('#user-web-name').textContent = settings.webName || 'HOG Network';
+            $('#user-web-name-2').textContent = settings.webName || 'HOG Network';
+            if (settings.bgUrl) {
+                document.body.style.backgroundImage = `url(${settings.bgUrl})`;
+            } else {
+                document.body.style.backgroundImage = 'none';
+            }
+            if (settings.notification) {
+                $('#user-notification-bar').classList.remove('hidden');
+                $('#user-notification-text').textContent = settings.notification;
+            } else {
+                $('#user-notification-bar').classList.add('hidden');
+            }
+            $('#whatsapp-contact').href = `https://wa.me/${settings.whatsApp.replace(/[^0-9]/g, '')}`;
+            
+            // Payment Modal
+            $('#manual-bank-name').textContent = settings.manualBank?.bankName || 'N/A';
+            $('#manual-account-number').textContent = settings.manualBank?.accountNumber || 'N/A';
+            $('#manual-account-name').textContent = settings.manualBank?.accountName || 'N/A';
+        }
+
+        // --- Event Listeners ---
+
+        // User: Buy Plan Button
+        $('#plan-list').addEventListener('click', (e) => {
+            if (e.target.classList.contains('buy-plan-btn')) {
+                const btn = e.target;
+                $('#modal-plan-name').textContent = btn.dataset.name;
+                $('#modal-plan-price').textContent = `₦${btn.dataset.price}`;
+                $('#modal-plan-validity').textContent = btn.dataset.validity;
+                $('#paystack-link').href = btn.dataset.link;
+                
+                // For manual form
+                $('#manual-plan-name').value = btn.dataset.name;
+                $('#manual-plan-price').value = btn.dataset.price;
+                
+                paymentModalEl.classList.remove('hidden');
+            }
+        });
+
+        // User: Close Modal
+        $('#close-modal-btn').addEventListener('click', () => {
+            paymentModalEl.classList.add('hidden');
+        });
+
+        // User: Payment Modal Tabs
+        $$('.payment-tab').forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                const target = e.currentTarget.id;
+                $$('.payment-tab').forEach(tab => {
+                    tab.classList.remove('text-blue-600', 'dark:text-blue-400', 'border-blue-500');
+                    tab.classList.add('text-gray-500', 'dark:text-gray-400', 'border-transparent');
+                });
+                e.currentTarget.classList.add('text-blue-600', 'dark:text-blue-400', 'border-blue-500');
+                e.currentTarget.classList.remove('text-gray-500', 'dark:text-gray-400', 'border-transparent');
+                
+                $$('.payment-tab-content').forEach(content => content.classList.add('hidden'));
+                if (target === 'tab-paystack') {
+                    $('#content-paystack').classList.remove('hidden');
+                } else {
+                    $('#content-manual').classList.remove('hidden');
+                }
+            });
+        });
+        
+        // User: Manual Payment Submit
+        $('#manual-payment-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const statusEl = $('#manual-submit-status');
+            statusEl.textContent = 'Submitting...';
+            try {
+                const paymentsCol = collection(db, `artifacts/${appId}/public/data/manual_payments`);
+                await addDoc(paymentsCol, {
+                    planName: $('#manual-plan-name').value,
+                    price: $('#manual-plan-price').value,
+                    userContact: $('#user-contact').value,
+                    proofUrl: $('#payment-proof').value,
+                    status: 'pending',
+                    timestamp: serverTimestamp()
+                });
+                statusEl.textContent = 'Submitted! Admin will review shortly.';
+                statusEl.classList.add('text-green-500');
+                e.target.reset();
+                setTimeout(() => {
+                    paymentModalEl.classList.add('hidden');
+                    statusEl.textContent = '';
+                }, 3000);
+            } catch (err) {
+                console.error("Manual payment submit error: ", err);
+                statusEl.textContent = 'Submission failed. Please try again.';
+                statusEl.classList.add('text-red-500');
+            }
+        });
+
+        // --- Start App ---
+        initFirebase();
+
+    </script>
+</body>
+</html>
