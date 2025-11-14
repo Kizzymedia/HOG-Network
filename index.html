@@ -1,505 +1,1400 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en" class="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Loading...</title>
+    <title>HOG Network</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Inter Font -->
+    <!-- Google Font (Inter) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide-react@0.311.0/dist/lucide-react.js"></script>
+    
 
     <style>
-        /* Base styles */
+        /* Base font */
         body {
             font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
             transition: background-color 0.3s, color 0.3s;
         }
+        
+        /* Light Mode */
+        .light {
+            --bg-color: #f3f4f6; /* gray-100 */
+            --bg-card: #ffffff; /* white */
+            --text-color: #111827; /* gray-900 */
+            --text-muted: #6b7280; /* gray-500 */
+            --border-color: #e5e7eb; /* gray-200 */
+        }
+
+        /* Dark Mode */
+        .dark {
+            --bg-color: #111827; /* gray-900 */
+            --bg-card: #1f2937; /* gray-800 */
+            --text-color: #f9fafb; /* gray-50 */
+            --text-muted: #9ca3af; /* gray-400 */
+            --border-color: #374152; /* gray-700 */
+        }
+
+        /* Page transition styles */
+        .page {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
         /* Custom scrollbar */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb { background: #888; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #555; }
-        .dark ::-webkit-scrollbar-track { background: #2d3748; }
-        .dark ::-webkit-scrollbar-thumb { background: #718096; }
-        .dark ::-webkit-scrollbar-thumb:hover { background: #a0aec0; }
-        /* Loading spinner */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-color);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        
+        /* Loading Spinner */
+        #loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            backdrop-filter: blur(5px);
+        }
         .spinner {
-            border: 4px solid rgba(0, 0, 0, 0.1);
-            width: 36px;
-            height: 36px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-left-color: #fff;
             border-radius: 50%;
-            border-left-color: #09f;
-            animation: spin 1s ease infinite;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
         }
-        .dark .spinner { border-left-color: #38b2ac; }
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            to { transform: rotate(360deg); }
         }
-        /* Modal backdrop */
-        .modal-backdrop {
-            background-color: rgba(0, 0, 0, 0.5);
+        
+        /* Toast Notification */
+        #toast-notification {
+            position: fixed;
+            bottom: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 24px;
+            border-radius: 8px;
+            background: #22c55e; /* green-500 */
+            color: white;
+            font-weight: 500;
+            z-index: 10000;
+            transition: bottom 0.5s ease-in-out;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
-        /* Custom background */
-        body {
+        #toast-notification.error {
+            background: #ef4444; /* red-500 */
+        }
+        #toast-notification.show {
+            bottom: 20px;
+        }
+        
+        /* Dynamic Background */
+        body.dynamic-bg {
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
-            transition: background-image 0.5s ease-in-out;
         }
     </style>
-    <script>
-        // Tailwind dark mode config
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                },
-            },
-        }
-    </script>
 </head>
-<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
+<body class="light">
 
-    <!-- ===== LOADING OVERLAY ===== -->
-    <div id="app-loading" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white dark:bg-gray-900">
+    <!-- =========== GLOBAL COMPONENTS =========== -->
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="page active">
         <div class="spinner"></div>
-        <p class="mt-4 text-lg font-medium text-gray-700 dark:text-gray-300">Connecting to HOG Network...</p>
-        <p id="auth-status" class="text-sm text-gray-500"></p>
     </div>
+    
+    <!-- Toast Notification -->
+    <div id="toast-notification"></div>
 
-    <!-- ===== USER VIEW ===== -->
-    <div id="user-view">
-        <!-- Header -->
-        <header class="sticky top-0 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md shadow-sm">
-            <nav class="container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-                <div class="flex items-center space-x-3">
-                    <img id="user-logo" src="https://placehold.co/150x50/000000/FFFFFF?text=HOG+Network" alt="Logo" class="h-10 w-auto rounded-md">
-                    <span id="user-web-name" class="text-2xl font-bold text-gray-800 dark:text-white">HOG Network</span>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <button id="dark-mode-toggle" class="p-2 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700">
-                        <!-- Moon Icon -->
-                        <svg id="theme-icon-dark" class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                        </svg>
-                        <!-- Sun Icon -->
-                        <svg id="theme-icon-light" class="h-6 w-6 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m8.66-15.66l-.7.7m-12.73 0l-.7-.7m14.14 0l-.7-.7m-12.73 0l-.7.7M21 12h-1M4 12H3m16.66-7.66l-.7-.7M5.05 5.05l-.7.7M17 17l-.7.7M5.76 18.24l-.7-.7" />
-                        </svg>
-                    </button>
-                    <a href="admin.html" class="text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">Admin</a>
-                </div>
-            </nav>
-        </header>
-
-        <!-- Notification Bar -->
-        <div id="user-notification-bar" class="bg-blue-600 text-white text-center p-3 hidden">
-            <span id="user-notification-text"></span>
-        </div>
-
-        <!-- Main Content -->
-        <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <h1 class="text-3xl sm:text-4xl font-bold text-center mb-4">Welcome to <span id="user-web-name-2">HOG Network</span></h1>
-            <p class="text-lg text-gray-600 dark:text-gray-300 text-center mb-10">Select a data plan to get started.</p>
-
-            <!-- Data Plan Grid -->
-            <div id="plan-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <!-- Plan cards will be injected here -->
-            </div>
-        </main>
-
-        <!-- WhatsApp Contact Button -->
-        <a id="whatsapp-contact" href="#" target="_blank" class="fixed bottom-6 right-6 bg-green-500 text-white p-4 rounded-full shadow-lg hover:bg-green-600 transition duration-300 z-50 flex items-center space-x-2">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-circle-more"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M8 12h.01"/><path d="M12 12h.01"/><path d="M16 12h.01"/></svg>
-            <span>Contact Admin</span>
-        </a>
-    </div>
-
-    <!-- ===== PAYMENT MODAL ===== -->
-    <div id="payment-modal" class="hidden fixed inset-0 z-50 overflow-y-auto modal-backdrop flex items-center justify-center p-4">
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-lg">
-            <!-- Modal Header -->
-            <div class="flex justify-between items-center p-5 border-b border-gray-200 dark:border-gray-700">
-                <h3 class="text-2xl font-semibold">Payment Details</h3>
-                <button id="close-modal-btn" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-                    <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+    <!-- Dark Mode Toggle -->
+    <button id="dark-mode-toggle" class="fixed bottom-4 right-4 z-50 p-3 rounded-full shadow-lg transition-transform hover:scale-110"
+            style="background-color: var(--bg-card); border: 1px solid var(--border-color);">
+        <svg id="theme-icon-sun" class="h-6 w-6" style="color: var(--text-color);" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M12 12a5 5 0 100-10 5 5 0 000 10z"></path></svg>
+        <svg id="theme-icon-moon" class="h-6 w-6 hidden" style="color: var(--text-color);" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+    </button>
+    
+    <!-- Payment Modal -->
+    <div id="payment-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 backdrop-blur-sm" style="display: none;">
+        <div class="p-6 rounded-lg shadow-xl w-full max-w-lg mx-4" style="background-color: var(--bg-card);">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold" id="modal-plan-name"></h2>
+                <button id="close-modal-btn" class="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
+                    <svg class="h-6 w-6" style="color: var(--text-muted);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
             
-            <!-- Modal Body -->
-            <div class="p-6">
-                <div class="mb-4">
-                    <h4 class="text-xl font-medium" id="modal-plan-name">Plan Name</h4>
-                    <p class="text-3xl font-bold text-blue-600 dark:text-blue-400" id="modal-plan-price">₦0</p>
-                    <p class="text-gray-600 dark:text-gray-300" id="modal-plan-validity">Validity</p>
-                </div>
+            <div class="mb-4">
+                <p class="text-3xl font-bold" style="color: var(--text-color);" id="modal-plan-price"></p>
+                <p class="text-sm" style="color: var(--text-muted);" id="modal-plan-details"></p>
+            </div>
 
-                <!-- Tabs -->
-                <div class="mb-4 border-b border-gray-200 dark:border-gray-700">
-                    <nav class="flex space-x-4" aria-label="Tabs">
-                        <button id="tab-paystack" class="payment-tab whitespace-nowrap pb-3 px-1 border-b-2 font-medium text-sm text-blue-600 dark:text-blue-400 border-blue-500">
-                            Paystack
-                        </button>
-                        <button id="tab-manual" class="payment-tab whitespace-nowrap pb-3 px-1 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-transparent">
-                            Manual Bank Transfer
-                        </button>
-                    </nav>
+            <div id="payment-options">
+                <p class="font-semibold mb-2">Select Payment Method:</p>
+                <button id="paystack-btn" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg mb-3 transition-transform hover:scale-105">
+                    Pay with Paystack
+                </button>
+                <button id="manual-btn" class="w-full bg-gray-500 text-white font-bold py-3 px-4 rounded-lg transition-transform hover:scale-105">
+                    Pay Manually (Bank Transfer)
+                </button>
+            </div>
+            
+            <!-- Manual Payment Info -->
+            <div id="manual-payment-info" style="display: none;">
+                <h3 class="text-lg font-semibold mb-2">Manual Payment Details</h3>
+                <div class="p-4 rounded-lg border" style="background-color: var(--bg-color); border-color: var(--border-color);">
+                    <p><strong>Bank:</strong> <span id="manual-bank-name"></span></p>
+                    <p><strong>Account Name:</strong> <span id="manual-account-name"></span></p>
+                    <p><strong>Account Number:</strong> <span id="manual-account-number"></span></p>
                 </div>
+                <p class="text-sm mt-4" style="color: var(--text-muted);">
+                    After payment, click the button below and send proof of payment to the admin on WhatsApp.
+                </p>
+                <button id="paid-btn" class="w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg mt-4 transition-transform hover:scale-105">
+                    I Have Paid
+                </button>
+            </div>
 
-                <!-- Paystack Content -->
-                <div id="content-paystack" class="payment-tab-content">
-                    <p class="mb-4 text-gray-600 dark:text-gray-300">Click the button below to pay securely with Paystack.</p>
-                    <a id="paystack-link" href="#" target="_blank" class="w-full text-center bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-md transition duration-150 inline-block">
-                        Pay Now
-                    </a>
-                    <p class="mt-4 text-sm text-gray-500">After payment, please contact the admin on WhatsApp to receive your voucher code.</p>
+            <!-- Payment Success/Instruction Message -->
+            <div id="payment-instruction" style="display: none;" class="text-center">
+                <svg class="h-16 w-16 text-green-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <h3 class="text-xl font-semibold mb-2" id="payment-instruction-title">Payment Submitted!</h3>
+                <p class="mb-4" style="color: var(--text-muted);">
+                    Please contact the admin on WhatsApp to get your voucher code. Send a screenshot of your payment receipt.
+                </p>
+                <a id="modal-whatsapp-btn" href="#" target="_blank" class="inline-flex items-center justify-center bg-green-500 text-white font-bold py-3 px-6 rounded-lg transition-transform hover:scale-105">
+                    <svg class="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 24 24"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91C2.13 13.66 2.59 15.36 3.45 16.86L2.06 22L7.3 20.6C8.75 21.41 10.37 21.82 12.04 21.82C17.5 21.82 21.95 17.37 21.95 11.91C21.95 6.45 17.5 2 12.04 2M12.04 3.67C16.57 3.67 20.28 7.38 20.28 11.91C20.28 16.44 16.57 20.15 12.04 20.15C10.53 20.15 9.09 19.79 7.8 19.11L7.53 18.96L4.49 19.76L5.3 16.8L5.15 16.52C4.42 15.2 4.02 13.59 4.02 11.91C4.02 7.38 7.72 3.67 12.04 3.67M17.26 14.65C17.03 14.54 15.86 13.96 15.65 13.88C15.44 13.79 15.28 13.74 15.11 13.96C14.95 14.17 14.45 14.76 14.3 14.92C14.16 15.08 14.01 15.11 13.78 15C13.55 14.89 12.89 14.65 12.11 13.94C11.47 13.36 10.99 12.63 10.88 12.41C10.76 12.2 10.87 12.09 11 11.95C11.11 11.83 11.23 11.68 11.37 11.51C11.5 11.34 11.54 11.23 11.64 11.02C11.75 10.81 11.7 10.65 11.63 10.5C11.56 10.35 11.08 9.09 10.87 8.59C10.67 8.1 10.47 8.15 10.3 8.14C10.14 8.14 9.98 8.14 9.81 8.14C9.65 8.14 9.38 8.19 9.15 8.41C8.92 8.62 8.43 9.08 8.43 10.03C8.43 10.98 9.17 11.89 9.32 12.05C9.47 12.21 10.91 14.49 13.11 15.3C13.62 15.51 14.01 15.61 14.31 15.69C14.73 15.79 15.12 15.77 15.4 15.7C15.72 15.61 16.71 15.06 16.91 14.95C17.11 14.84 17.26 14.78 17.32 14.65Z"></path></svg>
+                    Chat on WhatsApp
+                </a>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- =========== PAGE: USER PORTAL =========== -->
+    <div id="user-portal" class="page">
+        <!-- Header -->
+        <header class="sticky top-0 z-40 shadow-sm" style="background-color: var(--bg-card); border-bottom: 1px solid var(--border-color);">
+            <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <img id="site-logo-user" src="https://placehold.co/150x50/3498db/ffffff?text=HOG" alt="Logo" class="h-10 rounded">
+                    <span id="site-name-user" class="text-2xl font-bold" style="color: var(--text-color);">HOG Network</span>
                 </div>
+                <button id="admin-login-btn" class="text-sm font-medium py-2 px-4 rounded-lg transition-all"
+                        style="color: var(--text-muted); border: 1px solid var(--border-color); background-color: var(--bg-card);"
+                        hover:bg-gray-100 dark:hover:bg-gray-700>
+                    Admin Login
+                </button>
+            </div>
+        </header>
+        
+        <!-- Notification Banner -->
+        <div id="user-notification-banner" class="p-4 text-center text-sm" style="background-color: var(--bg-card); border-bottom: 1px solid var(--border-color); display: none;">
+            <p><strong class="font-semibold">Update:</strong> <span id="user-notification-text"></span></p>
+        </div>
 
-                <!-- Manual Payment Content -->
-                <div id="content-manual" class="payment-tab-content hidden">
-                    <p class="mb-4 text-gray-600 dark:text-gray-300">Transfer the exact amount to the account details below. After payment, submit your details for confirmation.</p>
-                    <div class="bg-gray-100 dark:bg-gray-700 p-4 rounded-md mb-4">
-                        <p><strong>Bank:</strong> <span id="manual-bank-name"></span></p>
-                        <p><strong>Account Number:</strong> <span id="manual-account-number"></span></p>
-                        <p><strong>Account Name:</strong> <span id="manual-account-name"></span></p>
+        <!-- Main Content -->
+        <main class="container mx-auto px-4 py-8 md:py-12">
+            <div class="text-center mb-10">
+                <h1 class="text-4xl md:text-5xl font-bold mb-4" style="color: var(--text-color);">Get Connected Instantly</h1>
+                <p class="text-lg md:text-xl" style="color: var(--text-muted);">Choose your preferred Wi-Fi data plan and start browsing.</p>
+            </div>
+            
+            <!-- Data Plans Grid -->
+            <div id="data-plans-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+                <!-- Data plans will be injected here by JavaScript -->
+                <div class="text-center p-4" style="color: var(--text-muted);">Loading plans...</div>
+            </div>
+
+            <!-- How it works -->
+            <div class="mt-16 text-center max-w-2xl mx-auto p-6 rounded-lg" style="background-color: var(--bg-card); border: 1px solid var(--border-color);">
+                <h2 class="text-2xl font-bold mb-4">How It Works</h2>
+                <ol class="text-left space-y-3" style="color: var(--text-muted);">
+                    <li>1. Select your desired data plan from the options above.</li>
+                    <li>2. Choose your payment method (Paystack or Manual Transfer).</li>
+                    <li>3. After successful payment, click the "Contact Admin" button.</li>
+                    <li>4. Send your proof of payment to the admin on WhatsApp.</li>
+                    <li>5. The admin will verify your payment and send your voucher code.</li>
+                </ol>
+            </div>
+        </main>
+        
+        <!-- Footer / Contact -->
+        <footer class="mt-16 py-8" style="background-color: var(--bg-card); border-top: 1px solid var(--border-color);">
+            <div class="container mx-auto px-4 text-center">
+                <p class="mb-4" style="color: var(--text-muted);">Need help? Contact the admin directly.</p>
+                <a id="footer-whatsapp-btn" href="#" target="_blank" 
+                   class="inline-flex items-center justify-center bg-green-500 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-transform hover:scale-105">
+                    <svg class="h-6 w-6 mr-2" fill="currentColor" viewBox="0 0 24 24"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91C2.13 13.66 2.59 15.36 3.45 16.86L2.06 22L7.3 20.6C8.75 21.41 10.37 21.82 12.04 21.82C17.5 21.82 21.95 17.37 21.95 11.91C21.95 6.45 17.5 2 12.04 2M12.04 3.67C16.57 3.67 20.28 7.38 20.28 11.91C20.28 16.44 16.57 20.15 12.04 20.15C10.53 20.15 9.09 19.79 7.8 19.11L7.53 18.96L4.49 19.76L5.3 16.8L5.15 16.52C4.42 15.2 4.02 13.59 4.02 11.91C4.02 7.38 7.72 3.67 12.04 3.67M17.26 14.65C17.03 14.54 15.86 13.96 15.65 13.88C15.44 13.79 15.28 13.74 15.11 13.96C14.95 14.17 14.45 14.76 14.3 14.92C14.16 15.08 14.01 15.11 13.78 15C13.55 14.89 12.89 14.65 12.11 13.94C11.47 13.36 10.99 12.63 10.88 12.41C10.76 12.2 10.87 12.09 11 11.95C11.11 11.83 11.23 11.68 11.37 11.51C11.5 11.34 11.54 11.23 11.64 11.02C11.75 10.81 11.7 10.65 11.63 10.5C11.56 10.35 11.08 9.09 10.87 8.59C10.67 8.1 10.47 8.15 10.3 8.14C10.14 8.14 9.98 8.14 9.81 8.14C9.65 8.14 9.38 8.19 9.15 8.41C8.92 8.62 8.43 9.08 8.43 10.03C8.43 10.98 9.17 11.89 9.32 12.05C9.47 12.21 10.91 14.49 13.11 15.3C13.62 15.51 14.01 15.61 14.31 15.69C14.73 15.79 15.12 15.77 15.4 15.7C15.72 15.61 16.71 15.06 16.91 14.95C17.11 14.84 17.26 14.78 17.32 14.65Z"></path></svg>
+                    Contact Admin on WhatsApp
+                </a>
+                <p class="text-sm mt-4" style="color: var(--text-muted);" id="site-name-footer">© 2024 HOG Network</p>
+            </div>
+        </footer>
+    </div>
+    
+    <!-- =========== PAGE: ADMIN LOGIN =========== -->
+    <div id="admin-login-page" class="page">
+        <div class="min-h-screen flex items-center justify-center py-12 px-4">
+            <div class="max-w-md w-full p-8 rounded-xl shadow-2xl" style="background-color: var(--bg-card); border: 1px solid var(--border-color);">
+                <div class="text-center mb-8">
+                    <img id="site-logo-login" src="https://placehold.co/150x50/3498db/ffffff?text=HOG" alt="Logo" class="h-12 mx-auto mb-4 rounded">
+                    <h2 class="text-3xl font-bold" style="color: var(--text-color);">Admin Login</h2>
+                    <p class="mt-2" style="color: var(--text-muted);">Access your dashboard</p>
+                </div>
+                <form id="admin-login-form" class="space-y-6">
+                    <div>
+                        <label for="admin-username" class="block text-sm font-medium" style="color: var(--text-muted);">Username</label>
+                        <input id="admin-username" name="username" type="text" required
+                               class="mt-1 block w-full px-4 py-3 rounded-lg border focus:ring-blue-500 focus:border-blue-500"
+                               style="background-color: var(--bg-color); border-color: var(--border-color);">
                     </div>
-                    <form id="manual-payment-form">
-                        <input type="hidden" id="manual-plan-name">
-                        <input type="hidden" id="manual-plan-price">
-                        <div class="mb-4">
-                            <label for="user-contact" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Your Name or WhatsApp Number</label>
-                            <input type="text" id="user-contact" required placeholder="So we can identify you" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm dark:bg-gray-700">
-                        </div>
-                        <div class="mb-4">
-                            <label for="payment-proof" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Payment Proof (Screenshot URL)</label>
-                            <input type="text" id="payment-proof" required placeholder="Upload to imgbb.com, paste link" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm dark:bg-gray-700">
-                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">We can't upload files. Please upload screenshot to a site like imgbb.com and paste the link.</p>
-                        </div>
-                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition duration-150">
-                            Submit for Confirmation
-                        </button>
-                        <p id="manual-submit-status" class="text-green-500 text-sm mt-2 text-center"></p>
-                    </form>
-                </div>
+                    <div>
+                        <label for="admin-password" class="block text-sm font-medium" style="color: var(--text-muted);">Password</label>
+                        <input id="admin-password" name="password" type="password" required
+                               class="mt-1 block w-full px-4 py-3 rounded-lg border focus:ring-blue-500 focus:border-blue-500"
+                               style="background-color: var(--bg-color); border-color: var(--border-color);">
+                    </div>
+                    <button type="submit"
+                            class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all">
+                        Login
+                    </button>
+                    <button id="back-to-home-btn" type="button"
+                            class="w-full flex justify-center py-3 px-4 border rounded-lg shadow-sm text-base font-medium transition-all"
+                            style="border-color: var(--border-color); color: var(--text-muted);"
+                            hover:bg-gray-100 dark:hover:bg-gray-700>
+                        Back to Home
+                    </button>
+                </form>
             </div>
         </div>
     </div>
     
-    <!-- Toast Notification -->
-    <div id="toast" class="fixed bottom-10 right-10 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg hidden z-50">
-        <span id="toast-message"></span>
+    <!-- =========== PAGE: ADMIN DASHBOARD =========== -->
+    <div id="admin-dashboard" class="page">
+        <!-- Admin Header -->
+        <header class="sticky top-0 z-40 shadow-sm" style="background-color: var(--bg-card); border-bottom: 1px solid var(--border-color);">
+            <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <img id="site-logo-admin" src="https://placehold.co/150x50/3498db/ffffff?text=HOG" alt="Logo" class="h-10 rounded">
+                    <span class="text-2xl font-bold" style="color: var(--text-color);">Admin Dashboard</span>
+                </div>
+                <button id="admin-logout-btn" class="text-sm font-medium py-2 px-4 rounded-lg transition-all bg-red-600 text-white hover:bg-red-700">
+                    Logout
+                </button>
+            </div>
+        </header>
+
+        <div class="container mx-auto px-4 py-8">
+            <!-- Admin Tabs Navigation -->
+            <div class="mb-6 border-b" style="border-color: var(--border-color);">
+                <nav class="flex flex-wrap -mb-px" aria-label="Tabs">
+                    <button class="admin-tab-btn active-tab" data-tab="admin-settings">General Settings</button>
+                    <button class="admin-tab-btn" data-tab="admin-plans">Data Plans</button>
+                    <button class="admin-tab-btn" data-tab="admin-payments">Manual Payments</button>
+                    <button class="admin-tab-btn" data-tab="admin-notifications">Notifications</button>
+                </nav>
+            </div>
+            
+            <style>
+                .admin-tab-btn {
+                    @apply whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm mr-8;
+                    border-color: transparent;
+                    color: var(--text-muted);
+                }
+                .admin-tab-btn:hover {
+                    border-color: var(--border-color);
+                    color: var(--text-color);
+                }
+                .admin-tab-btn.active-tab {
+                    @apply border-blue-600;
+                    color: #2563eb; /* blue-600 */
+                }
+                .admin-tab-content {
+                    display: none;
+                }
+                .admin-tab-content.active {
+                    display: block;
+                }
+            </style>
+
+            <!-- Admin Tab Content -->
+            <div>
+                <!-- General Settings Tab -->
+                <div id="admin-settings" class="admin-tab-content active">
+                    <form id="settings-form" class="space-y-6 max-w-2xl">
+                        <div class="p-6 rounded-lg" style="background-color: var(--bg-card); border: 1px solid var(--border-color);">
+                            <h3 class="text-xl font-semibold mb-4">Site Identity</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium" style="color: var(--text-muted);">Website Name</label>
+                                    <input type="text" id="setting-site-name" class="admin-input" placeholder="HOG Network">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium" style="color: var(--text-muted);">Logo URL</label>
+                                    <input type="text" id="setting-logo-url" class="admin-input" placeholder="https://your-logo-url.com/logo.png">
+                                    <p class="text-xs" style="color: var(--text-muted);">Paste a URL to your logo image.</p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium" style="color: var(--text-muted);">Background Image URL</label>
+                                    <input type="text" id="setting-bg-url" class="admin-input" placeholder="https://your-bg-url.com/image.png">
+                                    <p class="text-xs" style="color: var(--text-muted);">Paste a URL for the site background. (Optional)</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-6 rounded-lg" style="background-color: var(--bg-card); border: 1px solid var(--border-color);">
+                            <h3 class="text-xl font-semibold mb-4">Contact & Payment</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium" style="color: var(--text-muted);">Admin WhatsApp Number</label>
+                                    <input type="text" id="setting-whatsapp" class="admin-input" placeholder="+2349120461800">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium" style="color: var(--text-muted);">Paystack Redirect URL</label>
+                                    <input type="text" id="setting-redirect-url" class="admin-input" placeholder="HOG Network (or your URL)">
+                                </div>
+                                <h4 class="font-semibold pt-2">Manual Bank Details</h4>
+                                <div>
+                                    <label class="block text-sm font-medium" style="color: var(--text-muted);">Bank Name</label>
+                                    <input type="text" id="setting-bank-name" class="admin-input" placeholder="OPAY BANK">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium" style="color: var(--text-muted);">Account Number</label>
+                                    <input type="text" id="setting-account-number" class="admin-input" placeholder="6142233479">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium" style="color: var(--text-muted);">Account Name</label>
+                                    <input type="text" id="setting-account-name" class="admin-input" placeholder="KIZZY COMMUNICATION LINK">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-6 rounded-lg" style="background-color: var(--bg-card); border: 1px solid var(--border-color);">
+                            <h3 class="text-xl font-semibold mb-4">Admin Credentials</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium" style="color: var(--text-muted);">Admin Username</label>
+                                    <input type="text" id="setting-admin-user" class="admin-input">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium" style="color: var(--text-muted);">New Admin Password</label>
+                                    <input type="password" id="setting-admin-pass" class="admin-input" placeholder="Leave blank to keep unchanged">
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="w-full sm:w-auto py-3 px-6 bg-blue-600 text-white font-bold rounded-lg shadow-md hover:bg-blue-700 transition-all">
+                            Save All Settings
+                        </button>
+                    </form>
+                </div>
+                
+                <!-- Data Plans Tab -->
+                <div id="admin-plans" class="admin-tab-content">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Add/Edit Plan Form -->
+                        <div class="lg:col-span-1">
+                            <form id="plan-form" class="p-6 rounded-lg space-y-4" style="background-color: var(--bg-card); border: 1px solid var(--border-color);">
+                                <h3 id="plan-form-title" class="text-xl font-semibold">Add New Plan</h3>
+                                <input type="hidden" id="plan-id">
+                                <div>
+                                    <label class="block text-sm font-medium" style="color: var(--text-muted);">Data (e.g., 1GB)</label>
+                                    <input type="text" id="plan-data" class="admin-input" required>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium" style="color: var(--text-muted);">Price (e.g., 320)</label>
+                                    <input type="number" id="plan-price" class="admin-input" required>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium" style="color: var(--text-muted);">Validity (e.g., 24Hours)</label>
+                                    <input type="text" id="plan-validity" class="admin-input" required>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium" style="color: var(--text-muted);">Devices</label>
+                                    <input type="number" id="plan-devices" class="admin-input" value="1" required>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium" style="color: var(--text-muted);">Upload Speed (Mbps)</label>
+                                    <input type="number" id="plan-upload" class="admin-input" required>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium" style="color: var(--text-muted);">Download Speed (Mbps)</label>
+                                    <input type="number" id="plan-download" class="admin-input" required>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium" style="color: var(--text-muted);">Paystack Link</label>
+                                    <input type="text" id="plan-payment-link" class="admin-input" required>
+                                </div>
+                                <div class="flex gap-4">
+                                    <button type="submit" class="flex-1 py-3 px-4 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-all">
+                                        Save Plan
+                                    </button>
+                                    <button type="button" id="cancel-edit-btn" class="flex-1 py-3 px-4 bg-gray-500 text-white font-bold rounded-lg hover:bg-gray-600 transition-all" style="display: none;">
+                                        Cancel
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <!-- Current Plans List -->
+                        <div class="lg:col-span-2">
+                            <h3 class="text-xl font-semibold mb-4">Current Plans</h3>
+                            <div id="admin-plans-list" class="space-y-4">
+                                <!-- Admin plan list injected here -->
+                                <p style="color: var(--text-muted);">No plans found. Add one to get started.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Manual Payments Tab -->
+                <div id="admin-payments" class="admin-tab-content">
+                    <h3 class="text-xl font-semibold mb-4">Pending Manual Payments</h3>
+                    <div class="shadow-sm rounded-lg overflow-hidden" style="border: 1px solid var(--border-color);">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y" style="divide-color: var(--border-color);">
+                                <thead style="background-color: var(--bg-color);">
+                                    <tr>
+                                        <th scope="col" class="py-3 px-4 text-left text-xs font-medium uppercase" style="color: var(--text-muted);">Date</th>
+                                        <th scope="col" class="py-3 px-4 text-left text-xs font-medium uppercase" style="color: var(--text-muted);">Plan</th>
+                                        <th scope="col" class="py-3 px-4 text-left text-xs font-medium uppercase" style="color: var(--text-muted);">Price</th>
+                                        <th scope="col" class="py-3 px-4 text-left text-xs font-medium uppercase" style="color: var(--text-muted);">User ID</th>
+                                        <th scope="col" class="py-3 px-4 text-left text-xs font-medium uppercase" style="color: var(--text-muted);">Status</th>
+                                        <th scope="col" class="py-3 px-4 text-right text-xs font-medium uppercase" style="color: var(--text-muted);">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-payments-list" class="divide-y" style="background-color: var(--bg-card); divide-color: var(--border-color);">
+                                    <!-- Payment rows injected here -->
+                                    <tr>
+                                        <td class="py-4 px-4 whitespace-nowrap text-sm" colspan="6" style="color: var(--text-muted); text-align: center;">
+                                            No pending payments.
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Notifications Tab -->
+                <div id="admin-notifications" class="admin-tab-content">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Send Notification Form -->
+                        <div>
+                            <form id="notification-form" class="p-6 rounded-lg space-y-4" style="background-color: var(--bg-card); border: 1px solid var(--border-color);">
+                                <h3 class="text-xl font-semibold">Send New Notification</h3>
+                                <div>
+                                    <label class="block text-sm font-medium" style="color: var(--text-muted);">Message</label>
+                                    <textarea id="notification-message" class="admin-input" rows="4" placeholder="e.g., We are currently undergoing maintenance..." required></textarea>
+                                </div>
+                                <button type="submit" class="w-full py-3 px-4 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-all">
+                                    Send Notification
+                                </button>
+                            </form>
+                        </div>
+                        
+                        <!-- Sent Notifications List -->
+                        <div>
+                            <h3 class="text-xl font-semibold mb-4">Sent Notifications</h3>
+                            <div id="admin-notifications-list" class="space-y-3 max-h-96 overflow-y-auto pr-2">
+                                <!-- Notification list injected here -->
+                                <p style="color: var(--text-muted);">No notifications sent yet.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+        
+        <style>
+            .admin-input {
+                @apply mt-1 block w-full px-4 py-3 rounded-lg border focus:ring-blue-500 focus:border-blue-500;
+                background-color: var(--bg-color);
+                border-color: var(--border-color);
+            }
+        </style>
     </div>
 
-    <!-- ===== Firebase and App Logic ===== -->
+
+    <!-- =========== FIREBASE & APP SCRIPT =========== -->
     <script type="module">
-        // Import Firebase modules
+        // Firebase SDK Imports
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { 
-            getFirestore, doc, getDoc, setDoc, 
-            collection, onSnapshot, addDoc, serverTimestamp,
+            getAuth, 
+            signInAnonymously, 
+            onAuthStateChanged,
+            signInWithCustomToken
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { 
+            getFirestore, 
+            doc, 
+            getDoc, 
+            setDoc, 
+            updateDoc, 
+            deleteDoc, 
+            onSnapshot, 
+            collection, 
+            query, 
+            addDoc,
+            getDocs,
+            serverTimestamp,
+            Timestamp,
             setLogLevel
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // --- App State ---
-        let db, auth, userId, appId;
-        let currentSettings = {};
+        // --- GLOBAL STATE ---
+        let db, auth, userId, activePlan;
+        let appSettings = {}; // To store settings from Firestore
+        
+        // --- DOM ELEMENTS ---
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const pages = document.querySelectorAll('.page');
+        const adminLoginPage = document.getElementById('admin-login-page');
+        const userPortal = document.getElementById('user-portal');
+        const adminDashboard = document.getElementById('admin-dashboard');
+        const toast = document.getElementById('toast-notification');
+        const paymentModal = document.getElementById('payment-modal');
 
-        // --- Firebase Config ---
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-        appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        // --- HELPER FUNCTIONS ---
 
-        // --- DOM Elements ---
-        const $ = (selector) => document.querySelector(selector);
-        const $$ = (selector) => document.querySelectorAll(selector);
-        const loadingEl = $('#app-loading');
-        const authStatusEl = $('#auth-status');
-        const paymentModalEl = $('#payment-modal');
-
-        // --- Toast Notification ---
-        function showToast(message, success = true) {
-            const toast = $('#toast');
-            const toastMessage = $('#toast-message');
-            toastMessage.textContent = message;
-            toast.classList.remove('hidden');
-            toast.classList.toggle('bg-green-600', success);
-            toast.classList.toggle('bg-red-600', !success);
+        /**
+         * Shows a toast notification.
+         * @param {string} message - The message to display.
+         * @param {boolean} [isError=false] - If true, displays an error (red) toast.
+         */
+        function showToast(message, isError = false) {
+            toast.textContent = message;
+            toast.className = isError ? 'error' : '';
+            toast.classList.add('show');
             setTimeout(() => {
-                toast.classList.add('hidden');
+                toast.classList.remove('show');
             }, 3000);
         }
 
-        // --- Dark Mode ---
-        const html = document.documentElement;
-        const darkModeToggle = $('#dark-mode-toggle');
-        const themeIconDark = $('#theme-icon-dark');
-        const themeIconLight = $('#theme-icon-light');
-
-        const setMode = (dark) => {
-            if (dark) {
-                html.classList.add('dark');
-                themeIconDark.classList.add('hidden');
-                themeIconLight.classList.remove('hidden');
-                localStorage.setItem('theme', 'dark');
-            } else {
-                html.classList.remove('dark');
-                themeIconDark.classList.remove('hidden');
-                themeIconLight.classList.add('hidden');
-                localStorage.setItem('theme', 'light');
+        /**
+         * Shows a specific page by ID and hides others.
+         * @param {string} pageId - The ID of the page to show.
+         */
+        function showPage(pageId) {
+            pages.forEach(page => {
+                page.classList.remove('active');
+            });
+            const activePage = document.getElementById(pageId);
+            if (activePage) {
+                activePage.classList.add('active');
             }
-        };
-
-        darkModeToggle.addEventListener('click', () => {
-            setMode(!html.classList.contains('dark'));
-        });
-
-        // Check saved theme
-        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            setMode(true);
-        } else {
-            setMode(false);
+            loadingOverlay.classList.remove('active');
         }
 
-        // --- Firebase Initialization ---
-        async function initFirebase() {
+        /**
+         * Formats a number as Nigerian Naira (NGN).
+         * @param {number} amount - The amount in numbers.
+         * @returns {string} - The formatted currency string.
+         */
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-NG', {
+                style: 'currency',
+                currency: 'NGN',
+                minimumFractionDigits: 0
+            }).format(amount);
+        }
+        
+        /**
+         * Formats a Firebase Timestamp or JS Date into a readable string.
+         * @param {Timestamp | Date} timestamp - The timestamp object.
+         * @returns {string} - Formatted date string (e.g., "Nov 14, 2025, 11:30 AM")
+         */
+        function formatTimestamp(timestamp) {
+            if (!timestamp) return 'N/A';
+            const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+            return date.toLocaleString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit'
+            });
+        }
+
+        // --- FIREBASE INITIALIZATION & AUTH ---
+        
+        async function initializeFirebase() {
             try {
-                authStatusEl.textContent = 'Initializing app...';
+                // Get Firebase config and App ID from global vars (provided by environment)
+                const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+                const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+                if (!firebaseConfig.apiKey) {
+                    throw new Error("Firebase config is missing.");
+                }
+
                 const app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
-                setLogLevel('Debug');
-                authStatusEl.textContent = 'Authenticating...';
+                setLogLevel('debug'); // Enable Firestore logging
 
-                onAuthStateChanged(auth, async (user) => {
-                    if (user) {
-                        authStatusEl.textContent = `Authenticated as ${user.uid.substring(0, 8)}`;
-                        userId = user.uid;
-                        await checkAndInitDefaults();
-                        startAppListeners();
-                        loadingEl.classList.add('hidden');
-                    } else {
-                        // Not authenticated, try to sign in
-                        try {
-                            if (initialAuthToken) {
-                                await signInWithCustomToken(auth, initialAuthToken);
-                            } else {
-                                await signInAnonymously(auth);
-                            }
-                        } catch (err) {
-                            console.error('Sign-in error:', err);
-                            authStatusEl.textContent = 'Authentication failed. Please reload.';
+                // Authenticate the user
+                await authenticateUser();
+
+            } catch (error) {
+                console.error("Firebase Initialization Error:", error);
+                showToast("Error connecting to service. Please refresh.", true);
+                loadingOverlay.classList.remove('active');
+            }
+        }
+        
+        async function authenticateUser() {
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    console.log("User is authenticated:", user.uid);
+                    userId = user.uid;
+                    // User is signed in, now fetch data and route
+                    await checkAndSeedData(); // IMPORTANT: Seed data *after* auth
+                    setupFirestoreListeners();
+                    handleRouting(); // Handle page navigation
+                } else {
+                    console.log("User not signed in, attempting auth...");
+                    try {
+                        // Use __initial_auth_token if available (Canvas environment)
+                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                            console.log("Signing in with custom token...");
+                            await signInWithCustomToken(auth, __initial_auth_token);
+                        } else {
+                            // Fallback to anonymous sign-in for local testing
+                            console.log("Signing in anonymously...");
+                            await signInAnonymously(auth);
                         }
+                    } catch (authError) {
+                        console.error("Authentication Error:", authError);
+                        showToast("Authentication failed. Please refresh.", true);
+                        loadingOverlay.classList.remove('active'); // <-- This line is added
                     }
-                });
-
-            } catch (err) {
-                console.error("Firebase init failed:", err);
-                authStatusEl.textContent = 'Error connecting to services. Check console.';
-            }
-        }
-
-        // --- Initial Data Seeding ---
-        async function checkAndInitDefaults() {
-            authStatusEl.textContent = 'Checking database...';
-            const settingsRef = doc(db, `artifacts/${appId}/public/data/settings`, 'config');
-            const settingsSnap = await getDoc(settingsRef);
-
-            if (!settingsSnap.exists()) {
-                authStatusEl.textContent = 'Setting up defaults...';
-                // Set default settings
-                await setDoc(settingsRef, {
-                    webName: "HOG Network",
-                    logoUrl: "https://placehold.co/150x50/000000/FFFFFF?text=HOG+Network",
-                    bgUrl: "https://placehold.co/1920x1080/EEEEEE/333333?text=Welcome",
-                    whatsApp: "+2349120461800",
-                    notification: "Welcome! Contact admin on WhatsApp for your voucher after payment.",
-                    adminEmail: "igweemmanuel@aol.com",
-                    merchantEmail: "igweemmanuel@aol.com",
-                    redirectUrl: "HOG Network",
-                    manualBank: {
-                        bankName: "OPAY BANK",
-                        accountNumber: "6142233479",
-                        accountName: "KIZZY COMMUNICATION LINK"
-                    }
-                });
-
-                // Set default admin credentials
-                const adminRef = doc(db, `artifacts/${appId}/public/data/admin`, 'credentials');
-                await setDoc(adminRef, {
-                    username: "admin",
-                    password: "password123"
-                });
-
-                // Set default plans
-                const plansCol = collection(db, `artifacts/${appId}/public/data/plans`);
-                await addDoc(plansCol, {
-                    data: "1GB", price: 320, validity: "24Hours", devices: 1, upload: 5, download: 8,
-                    paymentLink: "https://paystack.shop/pay/asyhox1k9b"
-                });
-                await addDoc(plansCol, {
-                    data: "12GB", price: 3400, validity: "12Days", devices: 1, upload: 5, download: 8,
-                    paymentLink: "https://paystack.shop/pay/wl5obvswf8"
-                });
-                await addDoc(plansCol, {
-                    data: "20GB", price: 5500, validity: "30Days", devices: 1, upload: 5, download: 8,
-                    paymentLink: "https://paystack.shop/pay/2w6t3iv586"
-                });
-                authStatusEl.textContent = 'Defaults set.';
-            }
-        }
-
-        // --- Real-time Listeners ---
-        function startAppListeners() {
-            // 1. Settings Listener
-            const settingsRef = doc(db, `artifacts/${appId}/public/data/settings`, 'config');
-            onSnapshot(settingsRef, (docSnap) => {
-                if (docSnap.exists()) {
-                    currentSettings = docSnap.data();
-                    updateUISettings(currentSettings);
                 }
             });
+        }
+        
+        // --- DATA PATHS (using __app_id) ---
+        
+        const getCollectionPath = (collectionName) => {
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+            // All data is public for this app as per the requirements
+            return `artifacts/${appId}/public/data/${collectionName}`;
+        };
+        
+        const getSettingsDocRef = () => {
+            return doc(db, getCollectionPath('settings'), 'config');
+        };
+        
+        const getPlansCollectionRef = () => {
+            return collection(db, getCollectionPath('dataPlans'));
+        };
 
-            // 2. Plans Listener
-            const plansCol = collection(db, `artifacts/${appId}/public/data/plans`);
-            onSnapshot(plansCol, (snapshot) => {
-                let userPlanHtml = '';
-                snapshot.forEach(doc => {
-                    const plan = { ...doc.data(), id: doc.id };
-                    // Render for User View
-                    userPlanHtml += `
-                        <div class="bg-white dark:bg-gray-800 shadow-lg rounded-2xl p-6 transform hover:scale-105 transition-transform duration-300">
-                            <h3 class="text-2xl font-bold mb-2">${plan.data}</h3>
-                            <p class="text-4xl font-extrabold text-blue-600 dark:text-blue-400 mb-4">₦${plan.price}</p>
-                            <ul class="space-y-2 text-gray-600 dark:text-gray-300 mb-6">
-                                <li class="flex items-center"><svg class="h-5 w-5 text-green-500 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>${plan.validity}</li>
-                                <li class="flex items-center"><svg class="h-5 w-5 text-green-500 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>${plan.devices} Device(s)</li>
-                            </ul>
-                            <button class="buy-plan-btn w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-150"
-                                data-id="${plan.id}"
-                                data-name="${plan.data}"
-                                data-price="${plan.price}"
-                                data-validity="${plan.validity}"
-                                data-link="${plan.paymentLink}">
-                                Get Plan
-                            </button>
-                        </div>
-                    `;
-                });
-                $('#plan-list').innerHTML = userPlanHtml || '<p class="text-gray-500 col-span-full text-center">No data plans are available at this time.</p>';
-            });
+        const getPaymentsCollectionRef = () => {
+            return collection(db, getCollectionPath('manualPayments'));
+        };
+        
+        const getNotificationsCollectionRef = () => {
+            return collection(db, getCollectionPath('notifications'));
+        };
+
+        // --- INITIAL DATA SEEDING (First Run Only) ---
+
+        async function checkAndSeedData() {
+            try {
+                // 1. Check/Seed Settings
+                const settingsRef = getSettingsDocRef();
+                const settingsSnap = await getDoc(settingsRef);
+                
+                if (!settingsSnap.exists()) {
+                    console.log("No settings found. Seeding default settings...");
+                    const defaultSettings = {
+                        siteName: "HOG Network",
+                        logoUrl: "https://placehold.co/150x50/3498db/ffffff?text=HOG",
+                        backgroundUrl: "https://placehold.co/1920x1080/f3f4f6/9ca3af?text=HOG+Network+BG",
+                        whatsappNumber: "+2349120461800",
+                        redirectUrl: "HOG Network",
+                        adminUser: "admin",
+                        adminPass: "password123", // Default password
+                        manualBank: {
+                            bankName: "OPAY BANK",
+                            accountNumber: "6142233479",
+                            accountName: "KIZZY COMMUNICATION LINK"
+                        }
+                    };
+                    await setDoc(settingsRef, defaultSettings);
+                    console.log("Default settings seeded.");
+                }
+
+                // 2. Check/Seed Data Plans
+                const plansRef = getPlansCollectionRef();
+                const plansSnap = await getDocs(plansRef);
+                
+                if (plansSnap.empty) {
+                    console.log("No data plans found. Seeding default plans...");
+                    const defaultPlans = [
+                        { data: "1GB", price: 320, validity: "24Hours", devices: 1, upload: 5, download: 8, paymentLink: "https://paystack.shop/pay/asyhox1k9b" },
+                        { data: "12GB", price: 3400, validity: "12Days", devices: 1, upload: 5, download: 8, paymentLink: "https://paystack.shop/pay/wl5obvswf8" },
+                        { data: "20GB", price: 5500, validity: "30Days", devices: 1, upload: 5, download: 8, paymentLink: "https://paystack.shop/pay/2w6t3iv586" }
+                    ];
+                    
+                    for (const plan of defaultPlans) {
+                        await addDoc(plansRef, { ...plan, createdAt: serverTimestamp() });
+                    }
+                    console.log("Default plans seeded.");
+                }
+                
+                // 3. Seed default Admin emails (if not present)
+                const merchantEmail = "igweemmanuel@aol.com";
+                const adminEmailDoc = doc(db, getCollectionPath('admin'), 'emails');
+                const adminEmailSnap = await getDoc(adminEmailDoc);
+
+                if (!adminEmailSnap.exists()) {
+                    await setDoc(adminEmailDoc, {
+                        merchant: merchantEmail,
+                        admin: "igweemmanuel@aol.com" 
+                    });
+                }
+                
+            } catch (error) {
+                console.error("Error seeding data:", error);
+                showToast("Failed to initialize app data.", true);
+            }
         }
 
-        // --- UI Update Functions ---
+
+        // --- FIRESTORE LISTENERS (Real-time Data) ---
+
+        function setupFirestoreListeners() {
+            // 1. Settings Listener
+            onSnapshot(getSettingsDocRef(), (docSnap) => {
+                if (docSnap.exists()) {
+                    appSettings = docSnap.data();
+                    updateUISettings(appSettings);
+                } else {
+                    console.log("Settings document not found!");
+                }
+            }, (error) => {
+                console.error("Settings listener error:", error);
+                showToast("Error loading site settings.", true);
+            });
+
+            // 2. Data Plans Listener
+            const plansQuery = query(getPlansCollectionRef());
+            onSnapshot(plansQuery, (snapshot) => {
+                const plans = [];
+                snapshot.forEach(doc => {
+                    plans.push({ id: doc.id, ...doc.data() });
+                });
+                // Sort by price, ascending
+                plans.sort((a, b) => a.price - b.price);
+                renderUserPlans(plans);
+                renderAdminPlans(plans);
+            }, (error) => {
+                console.error("Data plans listener error:", error);
+                showToast("Error loading data plans.", true);
+            });
+            
+            // 3. Manual Payments Listener
+            const paymentsQuery = query(getPaymentsCollectionRef());
+            onSnapshot(paymentsQuery, (snapshot) => {
+                const payments = [];
+                snapshot.forEach(doc => {
+                    payments.push({ id: doc.id, ...doc.data() });
+                });
+                // Sort by date, newest first
+                payments.sort((a, b) => (b.createdAt?.toDate() || 0) - (a.createdAt?.toDate() || 0));
+                renderAdminPayments(payments);
+            }, (error) => {
+                console.error("Payments listener error:", error);
+                showToast("Error loading payments.", true);
+            });
+            
+            // 4. Notifications Listener
+            const notificationsQuery = query(getNotificationsCollectionRef());
+            onSnapshot(notificationsQuery, (snapshot) => {
+                const notifications = [];
+                snapshot.forEach(doc => {
+                    notifications.push({ id: doc.id, ...doc.data() });
+                });
+                // Sort by date, newest first
+                notifications.sort((a, b) => (b.createdAt?.toDate() || 0) - (a.createdAt?.toDate() || 0));
+                renderUserNotifications(notifications);
+                renderAdminNotifications(notifications);
+            }, (error) => {
+                console.error("Notifications listener error:", error);
+                showToast("Error loading notifications.", true);
+            });
+        }
+        
+        // --- UI RENDERING FUNCTIONS ---
+        
+        /**
+         * Updates all parts of the UI that depend on the settings.
+         * @param {object} settings - The appSettings object.
+         */
         function updateUISettings(settings) {
-            // User View
-            document.title = settings.webName || "Voucher Portal";
-            $('#user-logo').src = settings.logoUrl || 'https://placehold.co/150x50/000000/FFFFFF?text=HOG+Network';
-            $('#user-web-name').textContent = settings.webName || 'HOG Network';
-            $('#user-web-name-2').textContent = settings.webName || 'HOG Network';
-            if (settings.bgUrl) {
-                document.body.style.backgroundImage = `url(${settings.bgUrl})`;
+            // User Portal
+            document.getElementById('site-name-user').textContent = settings.siteName;
+            document.getElementById('site-name-footer').textContent = `© ${new Date().getFullYear()} ${settings.siteName}`;
+            document.getElementById('site-logo-user').src = settings.logoUrl || 'https://placehold.co/150x50/3498db/ffffff?text=HOG';
+            const waLink = `https://wa.me/${settings.whatsappNumber.replace('+', '')}`;
+            document.getElementById('footer-whatsapp-btn').href = waLink;
+            document.getElementById('modal-whatsapp-btn').href = waLink;
+            
+            // Admin Login
+            document.getElementById('site-logo-login').src = settings.logoUrl || 'https://placehold.co/150x50/3498db/ffffff?text=HOG';
+            
+            // Admin Dashboard
+            document.getElementById('site-logo-admin').src = settings.logoUrl || 'https://placehold.co/150x50/3498db/ffffff?text=HOG';
+
+            // Background Image
+            if (settings.backgroundUrl) {
+                document.body.style.backgroundImage = `url(${settings.backgroundUrl})`;
+                document.body.classList.add('dynamic-bg');
             } else {
                 document.body.style.backgroundImage = 'none';
+                document.body.classList.remove('dynamic-bg');
             }
-            if (settings.notification) {
-                $('#user-notification-bar').classList.remove('hidden');
-                $('#user-notification-text').textContent = settings.notification;
-            } else {
-                $('#user-notification-bar').classList.add('hidden');
-            }
-            $('#whatsapp-contact').href = `https://wa.me/${settings.whatsApp.replace(/[^0-9]/g, '')}`;
             
-            // Payment Modal
-            $('#manual-bank-name').textContent = settings.manualBank?.bankName || 'N/A';
-            $('#manual-account-number').textContent = settings.manualBank?.accountNumber || 'N/A';
-            $('#manual-account-name').textContent = settings.manualBank?.accountName || 'N/A';
+            // Manual Payment Info
+            document.getElementById('manual-bank-name').textContent = settings.manualBank?.bankName || 'N/A';
+            document.getElementById('manual-account-name').textContent = settings.manualBank?.accountName || 'N/A';
+            document.getElementById('manual-account-number').textContent = settings.manualBank?.accountNumber || 'N/A';
+
+            // Admin Settings Form
+            document.getElementById('setting-site-name').value = settings.siteName || '';
+            document.getElementById('setting-logo-url').value = settings.logoUrl || '';
+            document.getElementById('setting-bg-url').value = settings.backgroundUrl || '';
+            document.getElementById('setting-whatsapp').value = settings.whatsappNumber || '';
+            document.getElementById('setting-redirect-url').value = settings.redirectUrl || '';
+            document.getElementById('setting-bank-name').value = settings.manualBank?.bankName || '';
+            document.getElementById('setting-account-number').value = settings.manualBank?.accountNumber || '';
+            document.getElementById('setting-account-name').value = settings.manualBank?.accountName || '';
+            document.getElementById('setting-admin-user').value = settings.adminUser || '';
+            // Do not populate password field
+            document.getElementById('setting-admin-pass').value = '';
         }
-
-        // --- Event Listeners ---
-
-        // User: Buy Plan Button
-        $('#plan-list').addEventListener('click', (e) => {
-            if (e.target.classList.contains('buy-plan-btn')) {
-                const btn = e.target;
-                $('#modal-plan-name').textContent = btn.dataset.name;
-                $('#modal-plan-price').textContent = `₦${btn.dataset.price}`;
-                $('#modal-plan-validity').textContent = btn.dataset.validity;
-                $('#paystack-link').href = btn.dataset.link;
-                
-                // For manual form
-                $('#manual-plan-name').value = btn.dataset.name;
-                $('#manual-plan-price').value = btn.dataset.price;
-                
-                paymentModalEl.classList.remove('hidden');
+        
+        /**
+         * Renders the data plan cards on the user portal.
+         * @param {Array} plans - Array of plan objects.
+         */
+        function renderUserPlans(plans) {
+            const grid = document.getElementById('data-plans-grid');
+            if (plans.length === 0) {
+                grid.innerHTML = `<p class="col-span-full text-center" style="color: var(--text-muted);">No data plans are available at this time.</p>`;
+                return;
             }
-        });
-
-        // User: Close Modal
-        $('#close-modal-btn').addEventListener('click', () => {
-            paymentModalEl.classList.add('hidden');
-        });
-
-        // User: Payment Modal Tabs
-        $$('.payment-tab').forEach(tab => {
-            tab.addEventListener('click', (e) => {
-                const target = e.currentTarget.id;
-                $$('.payment-tab').forEach(tab => {
-                    tab.classList.remove('text-blue-600', 'dark:text-blue-400', 'border-blue-500');
-                    tab.classList.add('text-gray-500', 'dark:text-gray-400', 'border-transparent');
-                });
-                e.currentTarget.classList.add('text-blue-600', 'dark:text-blue-400', 'border-blue-500');
-                e.currentTarget.classList.remove('text-gray-500', 'dark:text-gray-400', 'border-transparent');
-                
-                $$('.payment-tab-content').forEach(content => content.classList.add('hidden'));
-                if (target === 'tab-paystack') {
-                    $('#content-paystack').classList.remove('hidden');
-                } else {
-                    $('#content-manual').classList.remove('hidden');
-                }
+            
+            grid.innerHTML = plans.map(plan => `
+                <div class="flex flex-col p-6 rounded-xl shadow-lg transform transition-transform hover:scale-105" 
+                     style="background-color: var(--bg-card); border: 1px solid var(--border-color);">
+                    <div class="mb-4">
+                        <h3 class="text-2xl font-bold">${plan.data}</h3>
+                        <p class="text-3xl font-bold text-blue-600 mt-2">${formatCurrency(plan.price)}</p>
+                    </div>
+                    <ul class="space-y-2 mb-6 text-sm flex-grow" style="color: var(--text-muted);">
+                        <li class="flex items-center">
+                            <svg class="h-4 w-4 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            <strong>Validity:</strong>&nbsp; ${plan.validity}
+                        </li>
+                        <li class="flex items-center">
+                            <svg class="h-4 w-4 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            <strong>Devices:</strong>&nbsp; ${plan.devices}
+                        </li>
+                    </ul>
+                    <button class="buy-now-btn w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg transition-colors hover:bg-blue-700"
+                            data-plan-id='${plan.id}'
+                            data-plan-name='${plan.data}'
+                            data-plan-price='${plan.price}'
+                            data-plan-details='${plan.validity} Validity • ${plan.devices} Device(s)'
+                            data-plan-paystack='${plan.paymentLink}'>
+                        Buy Now
+                    </button>
+                </div>
+            `).join('');
+            
+            // Add event listeners to new buttons
+            document.querySelectorAll('.buy-now-btn').forEach(btn => {
+                btn.addEventListener('click', () => showPaymentModal(btn.dataset));
             });
+        }
+        
+        /**
+         * Renders the data plan list in the admin dashboard.
+         * @param {Array} plans - Array of plan objects.
+         */
+        function renderAdminPlans(plans) {
+            const list = document.getElementById('admin-plans-list');
+            if (plans.length === 0) {
+                list.innerHTML = `<p style="color: var(--text-muted);">No plans found. Add one to get started.</p>`;
+                return;
+            }
+            
+            list.innerHTML = plans.map(plan => `
+                <div class="p-4 rounded-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4" style="background-color: var(--bg-color); border: 1px solid var(--border-color);">
+                    <div>
+                        <h4 class="font-bold">${plan.data} - ${formatCurrency(plan.price)}</h4>
+                        <p class="text-sm" style="color: var(--text-muted);">
+                            ${plan.validity} | ${plan.devices} Device(s) | 
+                            <span class="text-blue-500">Speed (Up/Down): ${plan.upload} / ${plan.download} Mbps</span>
+                        </p>
+                        <p class="text-xs break-all" style="color: var(--text-muted);">Link: ${plan.paymentLink}</p>
+                    </div>
+                    <div class="flex-shrink-0 flex gap-2">
+                        <button class="edit-plan-btn text-sm py-2 px-3 rounded-lg bg-yellow-500 text-white hover:bg-yellow-600" data-plan-id='${plan.id}'>
+                            Edit
+                        </button>
+                        <button class="delete-plan-btn text-sm py-2 px-3 rounded-lg bg-red-600 text-white hover:bg-red-700" data-plan-id='${plan.id}'>
+                            Delete
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+            
+            // Add listeners to edit/delete buttons
+            document.querySelectorAll('.edit-plan-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const planId = btn.dataset.planId;
+                    const plan = plans.find(p => p.id === planId);
+                    if (plan) loadPlanIntoForm(plan);
+                });
+            });
+            
+            document.querySelectorAll('.delete-plan-btn').forEach(btn => {
+                btn.addEventListener('click', () => deletePlan(btn.dataset.planId));
+            });
+        }
+        
+        /**
+         * Renders the manual payment list in the admin dashboard.
+         * @param {Array} payments - Array of payment objects.
+         */
+        function renderAdminPayments(payments) {
+            const list = document.getElementById('admin-payments-list');
+            if (payments.length === 0) {
+                list.innerHTML = `<tr><td class="py-4 px-4 whitespace-nowrap text-sm" colspan="6" style="color: var(--text-muted); text-align: center;">No payments found.</td></tr>`;
+                return;
+            }
+            
+            list.innerHTML = payments.map(p => `
+                <tr>
+                    <td class="py-4 px-4 whitespace-nowrap text-sm" style="color: var(--text-muted);">${formatTimestamp(p.createdAt)}</td>
+                    <td class="py-4 px-4 whitespace-nowrap text-sm font-medium" style="color: var(--text-color);">${p.plan.name}</td>
+                    <td class="py-4 px-4 whitespace-nowrap text-sm" style="color: var(--text-color);">${formatCurrency(p.plan.price)}</td>
+                    <td class="py-4 px-4 whitespace-nowrap text-sm" style="color: var(--text-muted);">${p.userId.substring(0, 8)}...</td>
+                    <td class="py-4 px-4 whitespace-nowrap text-sm">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                            p.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
+                            p.status === 'approved' ? 'bg-green-100 text-green-800' : 
+                            'bg-red-100 text-red-800'
+                        }">
+                            ${p.status}
+                        </span>
+                    </td>
+                    <td class="py-4 px-4 whitespace-nowrap text-right text-sm font-medium">
+                        ${p.status === 'pending' ? `
+                            <button class="approve-payment-btn text-green-600 hover:text-green-900 mr-3" data-payment-id='${p.id}'>Approve</button>
+                            <button class="disapprove-payment-btn text-red-600 hover:text-red-900" data-payment-id='${p.id}'>Disapprove</button>
+                        ` : `
+                            <button class="revert-payment-btn text-gray-500 hover:text-gray-700" data-payment-id='${p.id}'>Revert to Pending</button>
+                        `}
+                    </td>
+                </tr>
+            `).join('');
+            
+            // Add listeners
+            document.querySelectorAll('.approve-payment-btn').forEach(btn => {
+                btn.addEventListener('click', () => updatePaymentStatus(btn.dataset.paymentId, 'approved'));
+            });
+            document.querySelectorAll('.disapprove-payment-btn').forEach(btn => {
+                btn.addEventListener('click', () => updatePaymentStatus(btn.dataset.paymentId, 'disapproved'));
+            });
+            document.querySelectorAll('.revert-payment-btn').forEach(btn => {
+                btn.addEventListener('click', () => updatePaymentStatus(btn.dataset.paymentId, 'pending'));
+            });
+        }
+        
+        /**
+         * Renders notifications on the user portal.
+         * @param {Array} notifications - Array of notification objects.
+         */
+        function renderUserNotifications(notifications) {
+            const banner = document.getElementById('user-notification-banner');
+            const text = document.getElementById('user-notification-text');
+            if (notifications.length > 0) {
+                // Show the most recent one
+                text.textContent = notifications[0].message;
+                banner.style.display = 'block';
+            } else {
+                banner.style.display = 'none';
+            }
+        }
+        
+        /**
+         * Renders the notification list in the admin dashboard.
+         * @param {Array} notifications - Array of notification objects.
+         */
+        function renderAdminNotifications(notifications) {
+            const list = document.getElementById('admin-notifications-list');
+            if (notifications.length === 0) {
+                list.innerHTML = `<p style="color: var(--text-muted);">No notifications sent yet.</p>`;
+                return;
+            }
+            
+            list.innerHTML = notifications.map(n => `
+                <div class="p-4 rounded-lg" style="background-color: var(--bg-color); border: 1px solid var(--border-color);">
+                    <p class="text-sm">${n.message}</p>
+                    <p class="text-xs mt-2" style="color: var(--text-muted);">${formatTimestamp(n.createdAt)}</p>
+                </div>
+            `).join('');
+        }
+        
+        // --- PAYMENT MODAL LOGIC ---
+        
+        function showPaymentModal(planData) {
+            activePlan = {
+                id: planData.planId,
+                name: planData.planName,
+                price: planData.planPrice,
+                details: planData.planDetails,
+                paystackLink: planData.planPaystack
+            };
+            
+            document.getElementById('modal-plan-name').textContent = activePlan.name;
+            document.getElementById('modal-plan-price').textContent = formatCurrency(activePlan.price);
+            document.getElementById('modal-plan-details').textContent = activePlan.details;
+            
+            // Reset modal state
+            document.getElementById('payment-options').style.display = 'block';
+            document.getElementById('manual-payment-info').style.display = 'none';
+            document.getElementById('payment-instruction').style.display = 'none';
+            
+            paymentModal.style.display = 'flex';
+        }
+        
+        function closeModal() {
+            paymentModal.style.display = 'none';
+            activePlan = null;
+        }
+        
+        document.getElementById('close-modal-btn').addEventListener('click', closeModal);
+        
+        // Pay with Paystack
+        document.getElementById('paystack-btn').addEventListener('click', () => {
+            window.open(activePlan.paystackLink, '_blank');
+            document.getElementById('payment-options').style.display = 'none';
+            document.getElementById('manual-payment-info').style.display = 'none';
+            document.getElementById('payment-instruction-title').textContent = 'Payment Initiated!';
+            document.getElementById('payment-instruction').style.display = 'block';
         });
         
-        // User: Manual Payment Submit
-        $('#manual-payment-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const statusEl = $('#manual-submit-status');
-            statusEl.textContent = 'Submitting...';
+        // Pay Manually
+        document.getElementById('manual-btn').addEventListener('click', () => {
+            document.getElementById('payment-options').style.display = 'none';
+            document.getElementById('manual-payment-info').style.display = 'block';
+        });
+
+        // "I Have Paid" (Manual)
+        document.getElementById('paid-btn').addEventListener('click', async () => {
+            if (!activePlan || !userId) return;
+            
             try {
-                const paymentsCol = collection(db, `artifacts/${appId}/public/data/manual_payments`);
-                await addDoc(paymentsCol, {
-                    planName: $('#manual-plan-name').value,
-                    price: $('#manual-plan-price').value,
-                    userContact: $('#user-contact').value,
-                    proofUrl: $('#payment-proof').value,
+                await addDoc(getPaymentsCollectionRef(), {
+                    userId: userId,
+                    plan: {
+                        id: activePlan.id,
+                        name: activePlan.name,
+                        price: activePlan.price
+                    },
                     status: 'pending',
-                    timestamp: serverTimestamp()
+                    createdAt: serverTimestamp()
                 });
-                statusEl.textContent = 'Submitted! Admin will review shortly.';
-                statusEl.classList.add('text-green-500');
-                e.target.reset();
-                setTimeout(() => {
-                    paymentModalEl.classList.add('hidden');
-                    statusEl.textContent = '';
-                }, 3000);
-            } catch (err) {
-                console.error("Manual payment submit error: ", err);
-                statusEl.textContent = 'Submission failed. Please try again.';
-                statusEl.classList.add('text-red-500');
+                
+                document.getElementById('manual-payment-info').style.display = 'none';
+                document.getElementById('payment-instruction-title').textContent = 'Payment Submitted!';
+                document.getElementById('payment-instruction').style.display = 'block';
+                
+            } catch (error) {
+                console.error("Error submitting manual payment:", error);
+                showToast("Failed to submit payment. Please try again.", true);
             }
         });
 
-        // --- Start App ---
-        initFirebase();
+        // --- ADMIN LOGIN & ROUTING ---
+        
+        function handleRouting() {
+            const hash = window.location.hash;
+            const isAdmin = sessionStorage.getItem('isAdmin') === 'true';
+
+            if (hash === '#admin') {
+                showPage('admin-login-page');
+            } else if (hash === '#dashboard' && isAdmin) {
+                showPage('admin-dashboard');
+            } else {
+                showPage('user-portal');
+                if (hash !== '') {
+                    window.location.hash = ''; // Clear invalid hashes
+                }
+            }
+            loadingOverlay.classList.remove('active');
+        }
+        
+        window.addEventListener('hashchange', handleRouting);
+        
+        // Admin Login Button
+        document.getElementById('admin-login-btn').addEventListener('click', () => {
+            window.location.hash = 'admin';
+        });
+        
+        // Back to Home Button
+        document.getElementById('back-to-home-btn').addEventListener('click', () => {
+            window.location.hash = '';
+        });
+        
+        // Admin Login Form
+        document.getElementById('admin-login-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = e.target.username.value;
+            const password = e.target.password.value;
+            
+            if (username === appSettings.adminUser && password === appSettings.adminPass) {
+                sessionStorage.setItem('isAdmin', 'true');
+                showToast("Login successful! Welcome.", false);
+                window.location.hash = 'dashboard';
+            } else {
+                showToast("Invalid username or password.", true);
+            }
+        });
+        
+        // Admin Logout
+        document.getElementById('admin-logout-btn').addEventListener('click', () => {
+            sessionStorage.removeItem('isAdmin');
+            showToast("Logged out successfully.", false);
+            window.location.hash = '';
+        });
+
+        // --- ADMIN DASHBOARD LOGIC ---
+
+        // Tab Navigation
+        const adminTabs = document.querySelectorAll('.admin-tab-btn');
+        const adminTabContents = document.querySelectorAll('.admin-tab-content');
+        adminTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Deactivate all
+                adminTabs.forEach(t => t.classList.remove('active-tab'));
+                adminTabContents.forEach(c => c.classList.remove('active'));
+                
+                // Activate clicked
+                tab.classList.add('active-tab');
+                document.getElementById(tab.dataset.tab).classList.add('active');
+            });
+        });
+
+        // Save General Settings
+        document.getElementById('settings-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const newSettings = {
+                siteName: document.getElementById('setting-site-name').value,
+                logoUrl: document.getElementById('setting-logo-url').value,
+                backgroundUrl: document.getElementById('setting-bg-url').value,
+                whatsappNumber: document.getElementById('setting-whatsapp').value,
+                redirectUrl: document.getElementById('setting-redirect-url').value,
+                manualBank: {
+                    bankName: document.getElementById('setting-bank-name').value,
+                    accountNumber: document.getElementById('setting-account-number').value,
+                    accountName: document.getElementById('setting-account-name').value,
+                },
+                adminUser: document.getElementById('setting-admin-user').value,
+                adminPass: document.getElementById('setting-admin-pass').value || appSettings.adminPass // Keep old pass if blank
+            };
+            
+            try {
+                await setDoc(getSettingsDocRef(), newSettings);
+                showToast("Settings saved successfully!", false);
+                if (document.getElementById('setting-admin-pass').value) {
+                     showToast("Password has been updated.", false);
+                }
+            } catch (error) {
+                console.error("Error saving settings:", error);
+                showToast("Failed to save settings.", true);
+            }
+        });
+
+        // Save/Add Data Plan
+        document.getElementById('plan-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const planId = document.getElementById('plan-id').value;
+            
+            const planData = {
+                data: document.getElementById('plan-data').value,
+                price: parseFloat(document.getElementById('plan-price').value),
+                validity: document.getElementById('plan-validity').value,
+                devices: parseInt(document.getElementById('plan-devices').value),
+                upload: parseFloat(document.getElementById('plan-upload').value),
+                download: parseFloat(document.getElementById('plan-download').value),
+                paymentLink: document.getElementById('plan-payment-link').value,
+            };
+
+            try {
+                if (planId) {
+                    // Update existing plan
+                    const planRef = doc(getPlansCollectionRef(), planId);
+                    await updateDoc(planRef, planData);
+                    showToast("Plan updated successfully!", false);
+                } else {
+                    // Add new plan
+                    await addDoc(getPlansCollectionRef(), { ...planData, createdAt: serverTimestamp() });
+                    showToast("Plan added successfully!", false);
+                }
+                resetPlanForm();
+            } catch (error) {
+                console.error("Error saving plan:", error);
+                showToast("Failed to save plan.", true);
+            }
+        });
+        
+        // Delete Plan
+        async function deletePlan(planId) {
+            // NOTE: No confirm() dialog as per instructions. Using simple deletion.
+            // In a real app, a custom modal confirmation would be used here.
+            try {
+                const planRef = doc(getPlansCollectionRef(), planId);
+                await deleteDoc(planRef);
+                showToast("Plan deleted successfully.", false);
+            } catch (error) {
+                console.error("Error deleting plan:", error);
+                showToast("Failed to delete plan.", true);
+            }
+        }
+        
+        // Load Plan into Form for Editing
+        function loadPlanIntoForm(plan) {
+            document.getElementById('plan-form-title').textContent = "Edit Plan";
+            document.getElementById('plan-id').value = plan.id;
+            document.getElementById('plan-data').value = plan.data;
+            document.getElementById('plan-price').value = plan.price;
+            document.getElementById('plan-validity').value = plan.validity;
+            document.getElementById('plan-devices').value = plan.devices;
+            document.getElementById('plan-upload').value = plan.upload;
+            document.getElementById('plan-download').value = plan.download;
+            document.getElementById('plan-payment-link').value = plan.paymentLink;
+            document.getElementById('cancel-edit-btn').style.display = 'block';
+            document.getElementById('plan-data').focus();
+        }
+        
+        // Reset Plan Form
+        function resetPlanForm() {
+            document.getElementById('plan-form-title').textContent = "Add New Plan";
+            document.getElementById('plan-form').reset();
+            document.getElementById('plan-id').value = '';
+            document.getElementById('cancel-edit-btn').style.display = 'none';
+        }
+        document.getElementById('cancel-edit-btn').addEventListener('click', resetPlanForm);
+
+        // Update Payment Status
+        async function updatePaymentStatus(paymentId, status) {
+            try {
+                const paymentRef = doc(getPaymentsCollectionRef(), paymentId);
+                await updateDoc(paymentRef, { status: status });
+                showToast(`Payment ${status}.`, false);
+            } catch (error) {
+                console.error("Error updating payment:", error);
+                showToast("Failed to update payment status.", true);
+            }
+        }
+        
+        // Send Notification
+        document.getElementById('notification-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const message = document.getElementById('notification-message').value;
+            if (!message) return;
+            
+            try {
+                await addDoc(getNotificationsCollectionRef(), {
+                    message: message,
+                    createdAt: serverTimestamp()
+                });
+                showToast("Notification sent!", false);
+                document.getElementById('notification-form').reset();
+            } catch (error) {
+                console.error("Error sending notification:", error);
+                showToast("Failed to send notification.", true);
+            }
+        });
+
+        // --- DARK MODE ---
+        const toggleBtn = document.getElementById('dark-mode-toggle');
+        const sunIcon = document.getElementById('theme-icon-sun');
+        const moonIcon = document.getElementById('theme-icon-moon');
+        
+        // Check for saved theme
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+            document.body.classList.replace('light', 'dark');
+            sunIcon.classList.add('hidden');
+            moonIcon.classList.remove('hidden');
+        } else {
+            document.documentElement.classList.remove('dark');
+            document.body.classList.replace('dark', 'light');
+            sunIcon.classList.remove('hidden');
+            moonIcon.classList.add('hidden');
+        }
+
+        toggleBtn.addEventListener('click', () => {
+            if (document.body.classList.contains('dark')) {
+                // Switch to light
+                document.documentElement.classList.remove('dark');
+                document.body.classList.replace('dark', 'light');
+                localStorage.theme = 'light';
+                sunIcon.classList.remove('hidden');
+                moonIcon.classList.add('hidden');
+            } else {
+                // Switch to dark
+                document.documentElement.classList.add('dark');
+                document.body.classList.replace('light', 'dark');
+                localStorage.theme = 'dark';
+                sunIcon.classList.add('hidden');
+                moonIcon.classList.remove('hidden');
+            }
+        });
+        
+        
+        // --- APP ENTRY POINT ---
+        document.addEventListener('DOMContentLoaded', initializeFirebase);
 
     </script>
 </body>
