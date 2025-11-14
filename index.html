@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,7 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
-        /* Base styles */
+        /* Base styles - Enforcing Dark Mode */
         body {
             font-family: 'Inter', sans-serif;
             transition: background-color 0.3s ease, color 0.3s ease;
@@ -29,19 +29,17 @@
             background-position: center;
             background-repeat: no-repeat;
             transition: background-image 0.3s ease-in-out;
+            /* Ensure the image is slightly dimmed for text readability */
+            filter: brightness(0.7);
         }
         /* Style for admin-only fields */
         .admin-only {
-            background-color: #fef9c3; /* Light yellow */
-            border-left: 4px solid #f59e0b; /* Amber */
+            background-color: #453310; /* Dark yellow/brown */
+            color: #fef08a; /* Pale yellow text */
+            border-left: 4px solid #fcd34d; /* Amber border */
             padding: 2px 6px;
             font-size: 0.875rem;
             border-radius: 4px;
-        }
-        .dark .admin-only {
-            background-color: #453310;
-            color: #fef08a;
-            border-color: #fcd34d;
         }
         /* Simple modal transition */
         .modal {
@@ -59,24 +57,11 @@
         }
     </style>
 </head>
-<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+<!-- Default body is set to dark mode colors -->
+<body class="bg-gray-950 text-gray-100">
 
     <!-- SVG Icons Sprite -->
     <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
-        <symbol id="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="5"></circle>
-            <line x1="12" y1="1" x2="12" y2="3"></line>
-            <line x1="12" y1="21" x2="12" y2="23"></line>
-            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-            <line x1="1" y1="12" x2="3" y2="12"></line>
-            <line x1="21" y1="12" x2="23" y2="12"></line>
-            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-        </symbol>
-        <symbol id="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-        </symbol>
         <symbol id="icon-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="18" y1="6" x2="6" y2="18"></line>
             <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -125,20 +110,16 @@
     <!-- USER VIEW -->
     <!-- ================================================================= -->
     <div id="user-view" class="relative min-h-screen">
-        <!-- Header -->
-        <header class="sticky top-0 z-10 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md shadow-sm">
+        <!-- Header: bg-gray-900/80 for dark semi-transparency -->
+        <header class="sticky top-0 z-10 bg-gray-900/80 backdrop-blur-md shadow-sm">
             <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between items-center h-16">
                     <!-- Logo and Site Name -->
                     <div class="flex-shrink-0 flex items-center">
                         <img id="user-logo" class="h-10 w-auto" src="https://placehold.co/150x50/000000/FFFFFF?text=HOG+Network" alt="Site Logo">
-                        <span id="user-site-name" class="ml-3 text-2xl font-bold text-gray-800 dark:text-white">HOG Network</span>
+                        <span id="user-site-name" class="ml-3 text-2xl font-bold text-white">HOG Network</span>
                     </div>
-                    <!-- Theme Toggle -->
-                    <button id="theme-toggle" class="p-2 rounded-full text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700">
-                        <svg class="h-6 w-6" id="theme-icon-sun"><use href="#icon-sun"></use></svg>
-                        <svg class="h-6 w-6 hidden" id="theme-icon-moon"><use href="#icon-moon"></use></svg>
-                    </button>
+                    <!-- Theme Toggle (REMOVED) -->
                 </div>
             </nav>
         </header>
@@ -148,7 +129,8 @@
             
             <!-- Admin Notification -->
             <div id="user-notification-container" class="mb-8" style="display: none;">
-                <div class="bg-blue-100 dark:bg-blue-900/50 border-l-4 border-blue-500 text-blue-700 dark:text-blue-300 p-4 rounded-lg shadow-md" role="alert">
+                <!-- Adjusted for dark mode colors -->
+                <div class="bg-blue-900/50 border-l-4 border-blue-500 text-blue-300 p-4 rounded-lg shadow-md" role="alert">
                     <div class="flex items-center">
                         <svg class="h-6 w-6 mr-3"><use href="#icon-bell"></use></svg>
                         <p class="font-bold">Admin Notification</p>
@@ -158,23 +140,23 @@
             </div>
 
             <!-- Data Plans -->
-            <h1 class="text-3xl font-extrabold text-center mb-10 text-gray-900 dark:text-white">Our Data Plans</h1>
+            <h1 class="text-3xl font-extrabold text-center mb-10 text-white">Our Data Plans</h1>
             <div id="data-plans-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 <!-- Data plans will be injected here by JavaScript -->
             </div>
         </main>
 
-        <!-- Footer -->
-        <footer class="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md mt-12 py-6 shadow-inner-top">
+        <!-- Footer: bg-gray-900/80 for dark semi-transparency -->
+        <footer class="bg-gray-900/80 backdrop-blur-md mt-12 py-6 shadow-inner-top">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                 <a id="whatsapp-link" href="#" target="_blank" class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-green-600 hover:bg-green-700 shadow-lg">
                     <svg class="h-6 w-6 mr-3"><use href="#icon-whatsapp"></use></svg>
                     Contact Admin on WhatsApp
                 </a>
-                <p class="mt-4 text-sm text-gray-500 dark:text-gray-400">
+                <p class="mt-4 text-sm text-gray-400">
                     After payment, please send your proof of payment to the admin on WhatsApp to receive your voucher code.
                 </p>
-                <p id="admin-login-trigger" class="mt-4 text-xs text-gray-400 dark:text-gray-500 cursor-pointer hover:text-gray-600 dark:hover:text-gray-300">
+                <p id="admin-login-trigger" class="mt-4 text-xs text-gray-500 cursor-pointer hover:text-gray-300">
                     &copy; <span id="footer-year">2025</span> <span id="footer-site-name">HOG Network</span>. All rights reserved.
                 </p>
             </div>
@@ -184,28 +166,30 @@
     <!-- ================================================================= -->
     <!-- ADMIN LOGIN VIEW -->
     <!-- ================================================================= -->
-    <div id="admin-login-view" class="hidden min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
-        <div class="w-full max-w-md bg-white dark:bg-gray-800 shadow-2xl rounded-2xl p-8 m-4">
+    <div id="admin-login-view" class="hidden min-h-screen flex items-center justify-center bg-gray-950">
+        <div class="w-full max-w-md bg-gray-800 shadow-2xl rounded-2xl p-8 m-4">
             <div class="flex justify-center mb-6">
                 <img id="admin-logo" class="h-12 w-auto" src="https://placehold.co/150x50/000000/FFFFFF?text=HOG+Network" alt="Site Logo">
             </div>
-            <h2 class="text-3xl font-bold text-center text-gray-900 dark:text-white mb-6">Admin Login</h2>
+            <h2 class="text-3xl font-bold text-center text-white mb-6">Admin Login</h2>
             <form id="admin-login-form">
                 <div class="space-y-4">
                     <div>
-                        <label for="username" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Username</label>
-                        <input type="text" id="username" name="username" required class="mt-1 block w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
+                        <label for="username" class="block text-sm font-medium text-gray-300">Username</label>
+                        <!-- Updated inputs for dark mode -->
+                        <input type="text" id="username" name="username" required class="mt-1 block w-full px-4 py-3 border border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-gray-700 text-white">
                     </div>
                     <div>
-                        <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Password</label>
-                        <input type="password" id="password" name="password" required class="mt-1 block w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
+                        <label for="password" class="block text-sm font-medium text-gray-300">Password</label>
+                        <!-- Updated inputs for dark mode -->
+                        <input type="password" id="password" name="password" required class="mt-1 block w-full px-4 py-3 border border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-gray-700 text-white">
                     </div>
                 </div>
                 <p id="login-error" class="text-red-500 text-sm mt-4 hidden">Invalid username or password.</p>
                 <button type="submit" class="w-full mt-6 py-3 px-4 border border-transparent text-base font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-lg">
                     Log In
                 </button>
-                <button type="button" id="back-to-user-view" class="w-full mt-3 py-3 px-4 border border-gray-300 dark:border-gray-600 text-base font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                <button type="button" id="back-to-user-view" class="w-full mt-3 py-3 px-4 border border-gray-600 text-base font-medium rounded-lg text-gray-300 bg-gray-700 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                     Back to Site
                 </button>
             </form>
@@ -218,39 +202,35 @@
     <div id="admin-dashboard-view" class="hidden">
         <div class="flex min-h-screen">
             <!-- Sidebar -->
-            <nav class="w-64 bg-white dark:bg-gray-800 shadow-lg p-6 flex flex-col justify-between">
+            <nav class="w-64 bg-gray-800 shadow-lg p-6 flex flex-col justify-between">
                 <div>
                     <div class="flex items-center mb-8">
                         <img id="admin-dash-logo" class="h-10 w-auto" src="https://placehold.co/150x50/000000/FFFFFF?text=HOG+Network" alt="Site Logo">
-                        <span id="admin-dash-site-name" class="ml-3 text-xl font-bold text-gray-800 dark:text-white">Admin Panel</span>
+                        <span id="admin-dash-site-name" class="ml-3 text-xl font-bold text-white">Admin Panel</span>
                     </div>
                     <!-- Nav Links -->
                     <ul class="space-y-2">
-                        <li><a href="#settings" class="admin-nav-link flex items-center px-4 py-3 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg font-medium">
+                        <!-- Navigation links updated for dark mode -->
+                        <li><a href="#settings" class="admin-nav-link flex items-center px-4 py-3 text-gray-300 bg-gray-700 rounded-lg font-medium">
                             <svg class="h-5 w-5 mr-3"><use href="#icon-settings"></use></svg>General Settings
                         </a></li>
-                        <li><a href="#plans" class="admin-nav-link flex items-center px-4 py-3 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
+                        <li><a href="#plans" class="admin-nav-link flex items-center px-4 py-3 text-gray-400 hover:bg-gray-700 rounded-lg">
                             <svg class="h-5 w-5 mr-3"><use href="#icon-wifi"></use></svg>Data Plans
                         </a></li>
-                        <li><a href="#payment" class="admin-nav-link flex items-center px-4 py-3 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
+                        <li><a href="#payment" class="admin-nav-link flex items-center px-4 py-3 text-gray-400 hover:bg-gray-700 rounded-lg">
                             <svg class="h-5 w-5 mr-3"><use href="#icon-payment"></use></svg>Payment Settings
                         </a></li>
-                        <li><a href="#notifications" class="admin-nav-link flex items-center px-4 py-3 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
+                        <li><a href="#notifications" class="admin-nav-link flex items-center px-4 py-3 text-gray-400 hover:bg-gray-700 rounded-lg">
                             <svg class="h-5 w-5 mr-3"><use href="#icon-bell"></use></svg>Notifications
                         </a></li>
-                        <li><a href="#security" class="admin-nav-link flex items-center px-4 py-3 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
+                        <li><a href="#security" class="admin-nav-link flex items-center px-4 py-3 text-gray-400 hover:bg-gray-700 rounded-lg">
                             <svg class="h-5 w-5 mr-3"><use href="#icon-lock"></use></svg>Security
                         </a></li>
                     </ul>
                 </div>
-                <!-- Logout / Theme Toggle -->
+                <!-- Logout -->
                 <div class="space-y-4">
-                    <button id="theme-toggle-admin" class="w-full flex justify-center p-3 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700">
-                        <svg class="h-6 w-6" id="theme-icon-sun-admin"><use href="#icon-sun"></use></svg>
-                        <svg class="h-6 w-6 hidden" id="theme-icon-moon-admin"><use href="#icon-moon"></use></svg>
-                        <span class="ml-2">Toggle Theme</span>
-                    </button>
-                    <button id="admin-logout-btn" class="w-full flex items-center justify-center px-4 py-3 text-base font-medium rounded-lg text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/50 hover:bg-red-200 dark:hover:bg-red-800/60">
+                    <button id="admin-logout-btn" class="w-full flex items-center justify-center px-4 py-3 text-base font-medium rounded-lg text-red-400 bg-red-900/50 hover:bg-red-800/60">
                         <svg class="h-5 w-5 mr-3"><use href="#icon-logout"></use></svg>
                         Logout
                     </button>
@@ -258,30 +238,30 @@
             </nav>
 
             <!-- Main Content Area -->
-            <main class="flex-1 p-8 bg-gray-100 dark:bg-gray-900 overflow-y-auto">
-                <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-6" id="admin-tab-title">General Settings</h1>
+            <main class="flex-1 p-8 bg-gray-950 overflow-y-auto">
+                <h1 class="text-3xl font-bold text-white mb-6" id="admin-tab-title">General Settings</h1>
                 <div id="admin-toast" class="hidden fixed top-5 right-5 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg">
                     Settings saved successfully!
                 </div>
 
                 <!-- Admin Tab: General Settings -->
                 <div id="settings-tab" class="admin-tab-content space-y-8">
-                    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-                        <h2 class="text-xl font-semibold mb-4">Site Identity</h2>
+                    <div class="bg-gray-800 p-6 rounded-lg shadow-md">
+                        <h2 class="text-xl font-semibold mb-4 text-white">Site Identity</h2>
                         <form id="settings-form" class="space-y-4">
                             <div>
-                                <label for="site-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Website Name</label>
-                                <input type="text" id="site-name" class="mt-1 block w-full md:w-1/2 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white" placeholder="e.g., HOG Network">
+                                <label for="site-name" class="block text-sm font-medium text-gray-300">Website Name</label>
+                                <input type="text" id="site-name" class="mt-1 block w-full md:w-1/2 px-3 py-2 border border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-gray-700 text-white" placeholder="e.g., HOG Network">
                             </div>
                             <div>
-                                <label for="logo-upload" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Upload Logo</label>
-                                <input type="file" id="logo-upload" accept="image/*" class="mt-1 block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 dark:file:bg-blue-900/50 file:text-blue-700 dark:file:text-blue-300 hover:file:bg-blue-100 dark:hover:file:bg-blue-800/60">
-                                <img id="logo-preview" class="mt-3 h-12 w-auto bg-gray-200 dark:bg-gray-700 p-1 rounded" src="#" alt="Logo Preview" style="display: none;">
+                                <label for="logo-upload" class="block text-sm font-medium text-gray-300">Upload Logo</label>
+                                <input type="file" id="logo-upload" accept="image/*" class="mt-1 block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-900/50 file:text-blue-300 hover:file:bg-blue-800/60">
+                                <img id="logo-preview" class="mt-3 h-12 w-auto bg-gray-700 p-1 rounded" src="#" alt="Logo Preview" style="display: none;">
                             </div>
                             <div>
-                                <label for="bg-upload" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Upload Background Image</label>
-                                <input type="file" id="bg-upload" accept="image/*" class="mt-1 block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 dark:file:bg-blue-900/50 file:text-blue-700 dark:file:text-blue-300 hover:file:bg-blue-100 dark:hover:file:bg-blue-800/60">
-                                <img id="bg-preview" class="mt-3 h-24 w-auto bg-gray-200 dark:bg-gray-700 p-1 rounded" src="#" alt="Background Preview" style="display: none;">
+                                <label for="bg-upload" class="block text-sm font-medium text-gray-300">Upload Background Image</label>
+                                <input type="file" id="bg-upload" accept="image/*" class="mt-1 block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-900/50 file:text-blue-300 hover:file:bg-blue-800/60">
+                                <img id="bg-preview" class="mt-3 h-24 w-auto bg-gray-700 p-1 rounded" src="#" alt="Background Preview" style="display: none;">
                             </div>
                             <button type="submit" class="px-5 py-2 border border-transparent text-base font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 shadow-md">Save Changes</button>
                         </form>
@@ -291,53 +271,53 @@
                 <!-- Admin Tab: Data Plans -->
                 <div id="plans-tab" class="admin-tab-content hidden space-y-8">
                     <!-- Add/Edit Plan Form -->
-                    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-                        <h2 class="text-xl font-semibold mb-4" id="plan-form-title">Add New Data Plan</h2>
+                    <div class="bg-gray-800 p-6 rounded-lg shadow-md">
+                        <h2 class="text-xl font-semibold mb-4 text-white" id="plan-form-title">Add New Data Plan</h2>
                         <form id="plan-form" class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <input type="hidden" id="plan-index">
                             <div>
-                                <label for="plan-data" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Data Amount (e.g., 1GB)</label>
-                                <input type="text" id="plan-data" required class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
+                                <label for="plan-data" class="block text-sm font-medium text-gray-300">Data Amount (e.g., 1GB)</label>
+                                <input type="text" id="plan-data" required class="mt-1 block w-full px-3 py-2 border border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-gray-700 text-white">
                             </div>
                             <div>
-                                <label for="plan-price" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Price (e.g., 320)</label>
-                                <input type="number" id="plan-price" required class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
+                                <label for="plan-price" class="block text-sm font-medium text-gray-300">Price (e.g., 320)</label>
+                                <input type="number" id="plan-price" required class="mt-1 block w-full px-3 py-2 border border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-gray-700 text-white">
                             </div>
                             <div>
-                                <label for="plan-validity" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Validity (e.g., 24Hours)</label>
-                                <input type="text" id="plan-validity" required class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
+                                <label for="plan-validity" class="block text-sm font-medium text-gray-300">Validity (e.g., 24Hours)</label>
+                                <input type="text" id="plan-validity" required class="mt-1 block w-full px-3 py-2 border border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-gray-700 text-white">
                             </div>
                             <div>
-                                <label for="plan-devices" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Devices (e.g., 1)</label>
-                                <input type="number" id="plan-devices" required class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
+                                <label for="plan-devices" class="block text-sm font-medium text-gray-300">Devices (e.g., 1)</label>
+                                <input type="number" id="plan-devices" required class="mt-1 block w-full px-3 py-2 border border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-gray-700 text-white">
                             </div>
                             <div class="md:col-span-2">
-                                <label for="plan-payment-link" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Paystack Link</label>
-                                <input type="url" id="plan-payment-link" required class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
+                                <label for="plan-payment-link" class="block text-sm font-medium text-gray-300">Paystack Link</label>
+                                <input type="url" id="plan-payment-link" required class="mt-1 block w-full px-3 py-2 border border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-gray-700 text-white">
                             </div>
                             <!-- Admin-Only Fields -->
-                            <div class="md:col-span-2 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-200 dark:border-gray-700">
-                                <h3 class="text-lg font-medium text-gray-800 dark:text-gray-200 mb-3">Admin-Only Speed Settings</h3>
+                            <div class="md:col-span-2 p-4 bg-gray-900/50 rounded-lg border border-gray-700">
+                                <h3 class="text-lg font-medium text-gray-200 mb-3">Admin-Only Speed Settings</h3>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
-                                        <label for="plan-upload" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Upload Speed (Mbps)</label>
-                                        <input type="number" id="plan-upload" required class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
+                                        <label for="plan-upload" class="block text-sm font-medium text-gray-300">Upload Speed (Mbps)</label>
+                                        <input type="number" id="plan-upload" required class="mt-1 block w-full px-3 py-2 border border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-gray-700 text-white">
                                     </div>
                                     <div>
-                                        <label for="plan-download" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Download Speed (Mbps)</label>
-                                        <input type="number" id="plan-download" required class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
+                                        <label for="plan-download" class="block text-sm font-medium text-gray-300">Download Speed (Mbps)</label>
+                                        <input type="number" id="plan-download" required class="mt-1 block w-full px-3 py-2 border border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-gray-700 text-white">
                                     </div>
                                 </div>
                             </div>
                             <div class="md:col-span-2 flex items-center space-x-4">
                                 <button type="submit" id="save-plan-btn" class="px-5 py-2 border border-transparent text-base font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 shadow-md">Save Plan</button>
-                                <button type="button" id="clear-plan-form-btn" class="px-5 py-2 border border-gray-300 dark:border-gray-600 text-base font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">Clear Form</button>
+                                <button type="button" id="clear-plan-form-btn" class="px-5 py-2 border border-gray-600 text-base font-medium rounded-lg text-gray-300 bg-gray-700 hover:bg-gray-600">Clear Form</button>
                             </div>
                         </form>
                     </div>
                     <!-- Current Plans List -->
-                    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-                        <h2 class="text-xl font-semibold mb-4">Current Data Plans</h2>
+                    <div class="bg-gray-800 p-6 rounded-lg shadow-md">
+                        <h2 class="text-xl font-semibold mb-4 text-white">Current Data Plans</h2>
                         <div id="admin-plans-list" class="space-y-4">
                             <!-- Admin plan list injected here -->
                         </div>
@@ -346,31 +326,31 @@
 
                 <!-- Admin Tab: Payment Settings -->
                 <div id="payment-tab" class="admin-tab-content hidden space-y-8">
-                    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-                        <h2 class="text-xl font-semibold mb-4">Admin Contact</h2>
+                    <div class="bg-gray-800 p-6 rounded-lg shadow-md">
+                        <h2 class="text-xl font-semibold mb-4 text-white">Admin Contact</h2>
                         <form id="contact-form" class="space-y-4">
                             <div>
-                                <label for="whatsapp-number" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Admin WhatsApp Number</label>
-                                <input type="text" id="whatsapp-number" class="mt-1 block w-full md:w-1/2 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white" placeholder="+2349120461800">
-                                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Include country code (e.g., +234)</p>
+                                <label for="whatsapp-number" class="block text-sm font-medium text-gray-300">Admin WhatsApp Number</label>
+                                <input type="text" id="whatsapp-number" class="mt-1 block w-full md:w-1/2 px-3 py-2 border border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-gray-700 text-white" placeholder="+2349120461800">
+                                <p class="mt-1 text-xs text-gray-400">Include country code (e.g., +234)</p>
                             </div>
                             <button type="submit" class="px-5 py-2 border border-transparent text-base font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 shadow-md">Save Contact Info</button>
                         </form>
                     </div>
-                    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-                        <h2 class="text-xl font-semibold mb-4">Manual Payment Details</h2>
+                    <div class="bg-gray-800 p-6 rounded-lg shadow-md">
+                        <h2 class="text-xl font-semibold mb-4 text-white">Manual Payment Details</h2>
                         <form id="manual-payment-form" class="space-y-4">
                             <div>
-                                <label for="bank-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Bank Name</label>
-                                <input type="text" id="bank-name" class="mt-1 block w-full md:w-1/2 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
+                                <label for="bank-name" class="block text-sm font-medium text-gray-300">Bank Name</label>
+                                <input type="text" id="bank-name" class="mt-1 block w-full md:w-1/2 px-3 py-2 border border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-gray-700 text-white">
                             </div>
                             <div>
-                                <label for="account-number" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Account Number</label>
-                                <input type="text" id="account-number" class="mt-1 block w-full md:w-1/2 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
+                                <label for="account-number" class="block text-sm font-medium text-gray-300">Account Number</label>
+                                <input type="text" id="account-number" class="mt-1 block w-full md:w-1/2 px-3 py-2 border border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-gray-700 text-white">
                             </div>
                             <div>
-                                <label for="account-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Account Name</label>
-                                <input type="text" id="account-name" class="mt-1 block w-full md:w-1/2 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
+                                <label for="account-name" class="block text-sm font-medium text-gray-300">Account Name</label>
+                                <input type="text" id="account-name" class="mt-1 block w-full md:w-1/2 px-3 py-2 border border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-gray-700 text-white">
                             </div>
                             <button type="submit" class="px-5 py-2 border border-transparent text-base font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 shadow-md">Save Manual Details</button>
                         </form>
@@ -379,13 +359,13 @@
 
                 <!-- Admin Tab: Notifications -->
                 <div id="notifications-tab" class="admin-tab-content hidden">
-                    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-                        <h2 class="text-xl font-semibold mb-4">Send Notification to Users</h2>
+                    <div class="bg-gray-800 p-6 rounded-lg shadow-md">
+                        <h2 class="text-xl font-semibold mb-4 text-white">Send Notification to Users</h2>
                         <form id="notification-form" class="space-y-4">
                             <div>
-                                <label for="notification-message" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Message</label>
-                                <textarea id="notification-message" rows="4" class="mt-1 block w-full md:w-3/4 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white" placeholder="Enter a short message for all users..."></textarea>
-                                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">This message will appear at the top of the user page. Leave blank to hide.</p>
+                                <label for="notification-message" class="block text-sm font-medium text-gray-300">Message</label>
+                                <textarea id="notification-message" rows="4" class="mt-1 block w-full md:w-3/4 px-3 py-2 border border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-gray-700 text-white" placeholder="Enter a short message for all users..."></textarea>
+                                <p class="mt-1 text-xs text-gray-400">This message will appear at the top of the user page. Leave blank to hide.</p>
                             </div>
                             <button type="submit" class="px-5 py-2 border border-transparent text-base font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 shadow-md">Send/Update Notification</button>
                         </form>
@@ -394,16 +374,16 @@
 
                 <!-- Admin Tab: Security -->
                 <div id="security-tab" class="admin-tab-content hidden">
-                    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-                        <h2 class="text-xl font-semibold mb-4">Change Admin Credentials</h2>
+                    <div class="bg-gray-800 p-6 rounded-lg shadow-md">
+                        <h2 class="text-xl font-semibold mb-4 text-white">Change Admin Credentials</h2>
                         <form id="security-form" class="space-y-4 md:w-1/2">
                             <div>
-                                <label for="new-username" class="block text-sm font-medium text-gray-700 dark:text-gray-300">New Username</label>
-                                <input type="text" id="new-username" required class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
+                                <label for="new-username" class="block text-sm font-medium text-gray-300">New Username</label>
+                                <input type="text" id="new-username" required class="mt-1 block w-full px-3 py-2 border border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-gray-700 text-white">
                             </div>
                             <div>
-                                <label for="new-password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">New Password</label>
-                                <input type="password" id="new-password" required class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
+                                <label for="new-password" class="block text-sm font-medium text-gray-300">New Password</label>
+                                <input type="password" id="new-password" required class="mt-1 block w-full px-3 py-2 border border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-gray-700 text-white">
                             </div>
                             <button type="submit" class="px-5 py-2 border border-transparent text-base font-medium rounded-lg text-white bg-red-600 hover:bg-red-700 shadow-md">Update Credentials</button>
                         </form>
@@ -418,21 +398,22 @@
     <!-- PAYMENT MODAL -->
     <!-- ================================================================= -->
     <div id="payment-modal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-70 backdrop-blur-sm">
-        <div class="modal-content bg-white dark:bg-gray-800 w-full max-w-lg rounded-2xl shadow-2xl p-6 relative">
-            <button id="close-modal-btn" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+        <!-- Modal content adjusted for dark mode -->
+        <div class="modal-content bg-gray-800 w-full max-w-lg rounded-2xl shadow-2xl p-6 relative">
+            <button id="close-modal-btn" class="absolute top-4 right-4 text-gray-400 hover:text-gray-200">
                 <svg class="h-6 w-6"><use href="#icon-x"></use></svg>
             </button>
 
-            <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">Complete Your Payment</h2>
+            <h2 class="text-2xl font-bold text-white mb-4">Complete Your Payment</h2>
             
             <!-- Plan Details -->
-            <div class="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg mb-6">
-                <h3 class="text-lg font-semibold" id="modal-plan-data"></h3>
-                <p class="text-3xl font-bold text-blue-600 dark:text-blue-400" id="modal-plan-price"></p>
-                <p class="text-sm text-gray-600 dark:text-gray-300" id="modal-plan-validity"></p>
+            <div class="bg-gray-700 p-4 rounded-lg mb-6">
+                <h3 class="text-lg font-semibold text-white" id="modal-plan-data"></h3>
+                <p class="text-3xl font-bold text-blue-400" id="modal-plan-price"></p>
+                <p class="text-sm text-gray-300" id="modal-plan-validity"></p>
             </div>
 
-            <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">
+            <p class="text-sm text-gray-300 mb-4">
                 Choose your payment method. After payment, please send a screenshot of your receipt to the admin on WhatsApp to get your voucher code.
             </p>
 
@@ -443,17 +424,17 @@
                 </a>
                 
                 <!-- Manual Payment -->
-                <button id="manual-payment-btn" class="w-full flex items-center justify-center px-6 py-4 border border-gray-300 dark:border-gray-600 text-lg font-medium rounded-lg text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 shadow-md">
+                <button id="manual-payment-btn" class="w-full flex items-center justify-center px-6 py-4 border border-gray-600 text-lg font-medium rounded-lg text-gray-200 bg-gray-700 hover:bg-gray-600 shadow-md">
                     Manual Bank Transfer
                 </button>
 
                 <!-- Manual Payment Details (Hidden by default) -->
-                <div id="manual-payment-details" class="hidden bg-gray-50 dark:bg-gray-900/50 p-4 rounded-lg border border-gray-200 dark:border-gray-700 space-y-2">
-                    <h4 class="font-semibold text-gray-800 dark:text-gray-200">Bank Details:</h4>
-                    <p><strong>Bank:</strong> <span id="manual-bank-name"></span></p>
-                    <p><strong>Account Number:</strong> <span id="manual-account-number"></span></p>
-                    <p><strong>Account Name:</strong> <span id="manual-account-name"></span></p>
-                    <p class="text-sm font-medium text-red-600 dark:text-red-400 mt-2">
+                <div id="manual-payment-details" class="hidden bg-gray-900/50 p-4 rounded-lg border border-gray-700 space-y-2">
+                    <h4 class="font-semibold text-gray-200">Bank Details:</h4>
+                    <p class="text-gray-300"><strong>Bank:</strong> <span id="manual-bank-name"></span></p>
+                    <p class="text-gray-300"><strong>Account Number:</strong> <span id="manual-account-number"></span></p>
+                    <p class="text-gray-300"><strong>Account Name:</strong> <span id="manual-account-name"></span></p>
+                    <p class="text-sm font-medium text-red-400 mt-2">
                         IMPORTANT: Send payment proof to admin on WhatsApp!
                     </p>
                 </div>
@@ -469,7 +450,8 @@
         const defaultState = {
             siteName: "HOG Network",
             logoDataUrl: "https://placehold.co/150x50/000000/FFFFFF?text=HOG+Network",
-            bgDataUrl: "https://placehold.co/1920x1080/F0F0F0/AAAAAA?text=Background+Image",
+            // NEW DARK MODE WIFI BACKGROUND IMAGE
+            bgDataUrl: "https://placehold.co/1920x1080/111827/4A5568?text=SECURE+NETWORK+ACCESS",
             whatsAppNumber: "+2349120461800",
             adminCredentials: {
                 username: "admin",
@@ -523,14 +505,8 @@
         const adminLoginView = $('admin-login-view');
         const adminDashboardView = $('admin-dashboard-view');
 
-        // Theme
-        const themeToggle = $('theme-toggle');
-        const themeToggleAdmin = $('theme-toggle-admin');
-        const sunIcon = $('theme-icon-sun');
-        const moonIcon = $('theme-icon-moon');
-        const sunIconAdmin = $('theme-icon-sun-admin');
-        const moonIconAdmin = $('theme-icon-moon-admin');
-        
+        // Theme elements REMOVED
+
         // Modals
         const paymentModal = $('payment-modal');
         const closeModalBtn = $('close-modal-btn');
@@ -596,7 +572,8 @@
                 localStorage.setItem('wifiVoucherSite', JSON.stringify(appState));
             } catch (e) {
                 console.error("Failed to save state:", e);
-                alert("Error: Could not save settings. LocalStorage might be full or disabled.");
+                // Using a custom modal/message box instead of alert()
+                showAdminToast("Error: Could not save settings. LocalStorage might be full or disabled.");
             }
         }
 
@@ -619,28 +596,8 @@
             $(viewId).classList.remove('hidden');
         }
 
-        // --- THEME MANAGEMENT ---
-        function applyTheme(isDark) {
-            if (isDark) {
-                document.documentElement.classList.add('dark');
-                sunIcon.classList.add('hidden');
-                moonIcon.classList.remove('hidden');
-                sunIconAdmin.classList.add('hidden');
-                moonIconAdmin.classList.remove('hidden');
-            } else {
-                document.documentElement.classList.remove('dark');
-                sunIcon.classList.remove('hidden');
-                moonIcon.classList.add('hidden');
-                sunIconAdmin.classList.remove('hidden');
-                moonIconAdmin.classList.add('hidden');
-            }
-        }
-
-        function toggleTheme() {
-            const isDark = document.documentElement.classList.toggle('dark');
-            localStorage.setItem('darkMode', isDark);
-            applyTheme(isDark);
-        }
+        // --- THEME MANAGEMENT (REMOVED) ---
+        // Since the app is dark mode only, no theme toggling logic is needed.
 
         // --- RENDER FUNCTIONS ---
         function renderUserView() {
@@ -671,14 +628,15 @@
             plansContainer.innerHTML = '';
             appState.dataPlans.forEach((plan, index) => {
                 const planCard = document.createElement('div');
-                planCard.className = "bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm shadow-xl rounded-2xl p-6 flex flex-col transform hover:scale-[1.02] transition-transform duration-300";
+                // Updated card style for dark mode consistency
+                planCard.className = "bg-gray-800/90 backdrop-blur-sm shadow-xl rounded-2xl p-6 flex flex-col transform hover:scale-[1.02] transition-transform duration-300";
                 planCard.innerHTML = `
                     <div class="mb-4">
-                        <span class="inline-block bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-300 px-3 py-1 rounded-full text-sm font-semibold">${plan.validity}</span>
+                        <span class="inline-block bg-blue-900/50 text-blue-300 px-3 py-1 rounded-full text-sm font-semibold">${plan.validity}</span>
                     </div>
-                    <h2 class="text-3xl font-extrabold text-gray-900 dark:text-white mb-2">${plan.data}</h2>
-                    <p class="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-4">₦${plan.price}</p>
-                    <p class="text-gray-600 dark:text-gray-300 mb-6 flex-grow">Valid for ${plan.devices} device(s).</p>
+                    <h2 class="text-3xl font-extrabold text-white mb-2">${plan.data}</h2>
+                    <p class="text-4xl font-bold text-blue-400 mb-4">₦${plan.price}</p>
+                    <p class="text-gray-300 mb-6 flex-grow">Valid for ${plan.devices} device(s).</p>
                     <button class="buy-plan-btn w-full px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 shadow-lg" data-index="${index}">
                         Buy Now
                     </button>
@@ -722,17 +680,18 @@
             // Render Admin Plan List
             adminPlansList.innerHTML = '';
             if (appState.dataPlans.length === 0) {
-                adminPlansList.innerHTML = '<p class="text-gray-500 dark:text-gray-400">No data plans added yet.</p>';
+                adminPlansList.innerHTML = '<p class="text-gray-400">No data plans added yet.</p>';
                 return;
             }
 
             appState.dataPlans.forEach((plan, index) => {
                 const planItem = document.createElement('div');
-                planItem.className = 'p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-200 dark:border-gray-700 flex flex-wrap items-center justify-between gap-4';
+                // Updated list item style for dark mode
+                planItem.className = 'p-4 bg-gray-900/50 rounded-lg border border-gray-700 flex flex-wrap items-center justify-between gap-4';
                 planItem.innerHTML = `
                     <div>
-                        <p class="text-lg font-semibold text-gray-800 dark:text-gray-200">${plan.data} - ₦${plan.price}</p>
-                        <p class="text-sm text-gray-600 dark:text-gray-400">
+                        <p class="text-lg font-semibold text-gray-200">${plan.data} - ₦${plan.price}</p>
+                        <p class="text-sm text-gray-400">
                             Validity: ${plan.validity} | Devices: ${plan.devices} | Link: ${plan.paymentLink.substring(0, 30)}...
                         </p>
                         <p class="text-sm mt-1">
@@ -741,8 +700,8 @@
                         </p>
                     </div>
                     <div class="flex-shrink-0 space-x-2">
-                        <button class="admin-edit-plan-btn p-2 rounded-lg bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-300 hover:bg-yellow-200 dark:hover:bg-yellow-800/60" data-index="${index}">Edit</button>
-                        <button class="admin-delete-plan-btn p-2 rounded-lg bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800/60" data-index="${index}">Delete</button>
+                        <button class="admin-edit-plan-btn p-2 rounded-lg bg-yellow-900/50 text-yellow-300 hover:bg-yellow-800/60" data-index="${index}">Edit</button>
+                        <button class="admin-delete-plan-btn p-2 rounded-lg bg-red-900/50 text-red-300 hover:bg-red-800/60" data-index="${index}">Delete</button>
                     </div>
                 `;
                 adminPlansList.appendChild(planItem);
@@ -790,13 +749,13 @@
             e.preventDefault();
             const targetId = e.currentTarget.getAttribute('href').substring(1); // e.g., "settings"
             
-            // Update nav link styles
+            // Update nav link styles (all based on dark mode)
             adminNavLinks.forEach(link => {
-                link.classList.remove('bg-gray-100', 'dark:bg-gray-700', 'font-medium', 'text-gray-700', 'dark:text-gray-300');
-                link.classList.add('text-gray-600', 'dark:text-gray-400');
+                link.classList.remove('bg-gray-700', 'font-medium', 'text-gray-300');
+                link.classList.add('text-gray-400');
             });
-            e.currentTarget.classList.add('bg-gray-100', 'dark:bg-gray-700', 'font-medium', 'text-gray-700', 'dark:text-gray-300');
-            e.currentTarget.classList.remove('text-gray-600', 'dark:text-gray-400');
+            e.currentTarget.classList.add('bg-gray-700', 'font-medium', 'text-gray-300');
+            e.currentTarget.classList.remove('text-gray-400');
 
             // Show correct tab content
             adminTabContents.forEach(tab => {
@@ -919,7 +878,8 @@
         }
 
         function handleDeletePlan(index) {
-            if (confirm("Are you sure you want to delete this plan?")) {
+            // Using confirm() for simplicity here, but in a real app, use a custom modal
+            if (window.confirm("Are you sure you want to delete this plan?")) {
                 appState.dataPlans.splice(index, 1);
                 saveState();
                 renderUserView();
@@ -970,11 +930,6 @@
             // Load state from localStorage or set defaults
             loadState();
 
-            // Set up theme
-            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            const storedTheme = localStorage.getItem('darkMode');
-            applyTheme(storedTheme === null ? prefersDark : storedTheme === 'true');
-
             // Render the initial user view
             renderUserView();
 
@@ -987,9 +942,6 @@
             }
 
             // --- ATTACH EVENT LISTENERS ---
-            // Theme
-            themeToggle.addEventListener('click', toggleTheme);
-            themeToggleAdmin.addEventListener('click', toggleTheme);
             
             // Modals
             closeModalBtn.addEventListener('click', closePaymentModal);
