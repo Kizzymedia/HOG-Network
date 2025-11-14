@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Base styles */
+        body {
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #888; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
+        .dark ::-webkit-scrollbar-track { background: #2d3748; }
+        .dark ::-webkit-scrollbar-thumb { background: #718096; }
+        .dark ::-webkit-scrollbar-thumb:hover { background: #a0aec0; }
+        /* Loading spinner */
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: #09f;
+            animation: spin 1s ease infinite;
+        }
+        .dark .spinner { border-left-color: #38b2ac; }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+    <script>
+        // Tailwind dark mode config
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
+
+    <!-- ===== LOADING OVERLAY ===== -->
+    <div id="app-loading" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white dark:bg-gray-900">
+        <div class="spinner"></div>
+        <p class="mt-4 text-lg font-medium text-gray-700 dark:text-gray-300">Connecting to Admin Services...</p>
+        <p id="auth-status" class="text-sm text-gray-500"></p>
+    </div>
+
+    <!-- ===== ADMIN LOGIN VIEW ===== -->
+    <div id="admin-login-view" class="hidden min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900 p-4">
+        <div class="w-full max-w-md bg-white dark:bg-gray-800 shadow-xl rounded-lg p-8">
+            <div class="flex flex-col items-center mb-6">
+                <img id="admin-logo" src="https://placehold.co/150x50/000000/FFFFFF?text=HOG+Network" alt="Logo" class="h-12 w-auto rounded-md mb-4">
+                <h2 class="text-2xl font-bold text-center text-gray-800 dark:text-white">Admin Login</h2>
+            </div>
+            <form id="admin-login-form">
+                <div class="mb-4">
+                    <label for="username" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Username</label>
+                    <input type="text" id="username" name="username" required class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div class="mb-6">
+                    <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Password</label>
+                    <input type="password" id="password" name="password" required class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition duration-150">
+                    Login
+                </button>
+                <p id="login-error" class="text-red-500 text-sm mt-4 text-center"></p>
+            </form>
+            <a href="index.html" class="block text-center mt-4 text-sm text-blue-600 hover:underline dark:text-blue-400">Back to User Site</a>
+        </div>
+    </div>
+
+    <!-- ===== ADMIN DASHBOARD VIEW ===== -->
+    <div id="admin-dashboard-view" class="hidden">
+        <div class="flex h-screen bg-gray-100 dark:bg-gray-900">
+            <!-- Sidebar -->
+            <aside class="w-64 bg-white dark:bg-gray-800 shadow-md hidden sm:block">
+                <div class="p-6 flex justify-between items-center">
+                    <a href="index.html" class="flex items-center space-x-3">
+                        <img id="admin-dash-logo" src="https://placehold.co/150x50/000000/FFFFFF?text=HOG+Network" alt="Logo" class="h-10 w-auto rounded-md">
+                        <span id="admin-dash-web-name" class="text-xl font-bold text-gray-800 dark:text-white">Admin</span>
+                    </a>
+                </div>
+                <nav class="mt-6">
+                    <a href="#settings" class="admin-nav-link flex items-center px-6 py-3 text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-700">
+                        <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                        <span class="ml-3">Settings</span>
+                    </a>
+                    <a href="#plans" class="admin-nav-link flex items-center px-6 py-3 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700">
+                        <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m11-1V3m-2 2h4m-1 11v4m-2-2h4M12 3v1m0 16v1m8.66-15.66l-.7.7M5.05 5.05l-.7-.7m14.14 0l-.7-.7m-12.73 0l-.7.7" /></svg>
+                        <span class="ml-3">Data Plans</span>
+                    </a>
+                    <a href="#vouchers" class="admin-nav-link flex items-center px-6 py-3 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700">
+                        <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5h14a2 2 0 012 2v3a2 2 0 00-2-2H5a2 2 0 00-2 2v3a2 2 0 012 2h14a2 2 0 012 2v3a2 2 0 01-2 2H5a2 2 0 01-2-2v-3a2 2 0 002-2V7a2 2 0 012-2z" /></svg>
+                        <span class="ml-3">Vouchers</span>
+                    </a>
+                    <a href="#payments" class="admin-nav-link flex items-center px-6 py-3 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700">
+                        <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>
+                        <span class="ml-3">Manual Payments</span>
+                    </a>
+                    <a href="#credentials" class="admin-nav-link flex items-center px-6 py-3 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700">
+                        <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                        <span class="ml-3">Credentials</span>
+                    </a>
+                </nav>
+                <div class="absolute bottom-0 w-64">
+                    <a href="#" id="admin-logout" class="flex items-center px-6 py-3 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700">
+                        <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                        <span class="ml-3">Logout</span>
+                    </a>
+                </div>
+            </aside>
+
+            <!-- Main content -->
+            <main class="flex-1 overflow-y-auto">
+                <div class="px-6 py-8">
+                    
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 id="tab-title" class="text-3xl font-bold text-gray-800 dark:text-white">General Settings</h2>
+                        <button id="dark-mode-toggle" class="p-2 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700">
+                            <!-- Moon Icon -->
+                            <svg id="theme-icon-dark" class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                            </svg>
+                            <!-- Sun Icon -->
+                            <svg id="theme-icon-light" class="h-6 w-6 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m8.66-15.66l-.7.7m-12.73 0l-.7-.7m14.14 0l-.7-.7m-12.73 0l-.7.7M21 12h-1M4 12H3m16.66-7.66l-.7-.7M5.05 5.05l-.7.7M17 17l-.7.7M5.76 18.24l-.7-.7" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- ===== Settings Tab ===== -->
+                    <div id="tab-settings" class="admin-tab">
+                        <form id="settings-form" class="space-y-6 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+                            <div>
+                                <label for="web-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Website Name</label>
+                                <input type="text" id="web-name" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm dark:bg-gray-700 focus:border-blue-500 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label for="logo-url" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Logo URL</label>
+                                <input type="text" id="logo-url" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm dark:bg-gray-700 focus:border-blue-500 focus:ring-blue-500">
+                                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Upload to imgbb.com, paste link here. (e.g., https://i.ibb.co/..)</p>
+                            </div>
+                            <div>
+                                <label for="bg-url" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Background Image URL</label>
+                                <input type="text" id="bg-url" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm dark:bg-gray-700 focus:border-blue-500 focus:ring-blue-500">
+                                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Recommended: A subtle, large image.</p>
+                            </div>
+                            <div>
+                                <label for="whatsapp-number" class="block text-sm font-medium text-gray-700 dark:text-gray-300">WhatsApp Number</label>
+                                <input type="text" id="whatsapp-number" placeholder="+2349120461800" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm dark:bg-gray-700 focus:border-blue-500 focus:ring-blue-500">
+                            </div>
+                             <div>
+                                <label for="notification-text" class="block text-sm font-medium text-gray-700 dark:text-gray-300">User Notification Message</label>
+                                <input type="text" id="notification-text" placeholder="E.g., We are under maintenance" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm dark:bg-gray-700 focus:border-blue-500 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label for="admin-email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Admin Email</label>
+                                <input type="email" id="admin-email" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm dark:bg-gray-700 focus:border-blue-500 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label for="merchant-email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Merchant Email</label>
+                                <input type="email" id="merchant-email" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm dark:bg-gray-700 focus:border-blue-500 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label for="redirect-url" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Redirect URL (After Payment)</label>
+                                <input type="text" id="redirect-url" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm dark:bg-gray-700 focus:border-blue-500 focus:ring-blue-500">
+                            </div>
+
+                            <fieldset class="border border-gray-300 dark:border-gray-600 p-4 rounded-md">
+                                <legend class="text-sm font-medium text-gray-700 dark:text-gray-300 px-2">Manual Payment Details</legend>
+                                <div class="space-y-4 mt-2">
+                                     <div>
+                                        <label for="bank-name" class="block text-xs font-medium text-gray-700 dark:text-gray-300">Bank Name</label>
+                                        <input type="text" id="bank-name" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm dark:bg-gray-700 focus:border-blue-500 focus:ring-blue-500">
+                                    </div>
+                                    <div>
+                                        <label for="account-number" class="block text-xs font-medium text-gray-700 dark:text-gray-300">Account Number</label>
+                                        <input type="text" id="account-number" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm dark:bg-gray-700 focus:border-blue-500 focus:ring-blue-500">
+                                    </div>
+                                    <div>
+                                        <label for="account-name" class="block text-xs font-medium text-gray-700 dark:text-gray-300">Account Name</label>
+                                        <input type="text" id="account-name" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm dark:bg-gray-700 focus:border-blue-500 focus:ring-blue-500">
+                                    </div>
+                                </div>
+                            </fieldset>
+                            
+                            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition duration-150">
+                                Save Settings
+                            </button>
+                            <p id="settings-save-status" class="text-green-500 text-sm mt-2 text-center"></p>
+                        </form>
+                    </div>
+
+                    <!-- ===== Data Plans Tab ===== -->
+                    <div id="tab-plans" class="admin-tab hidden">
+                        <form id="plan-form" class="space-y-6 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mb-8">
+                            <h3 id="plan-form-title" class="text-xl font-semibold">Add New Plan</h3>
+                            <input type="hidden" id="plan-id">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label for="plan-data" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Data (e.g., 1GB)</label>
+                                    <input type="text" id="plan-data" required class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm dark:bg-gray-700">
+                                </div>
+                                <div>
+                                    <label for="plan-price" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Price (e.g., 320)</label>
+                                    <input type="number" id="plan-price" required class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm dark:bg-gray-700">
+                                </div>
+                                <div>
+                                    <label for="plan-validity" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Validity (e.g., 24Hours)</label>
+                                    <input type="text" id="plan-validity" required class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm dark:bg-gray-700">
+                                </div>
+                                <div>
+                                    <label for="plan-devices" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Devices</label>
+                                    <input type="number" id="plan-devices" required class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm dark:bg-gray-700">
+                                </div>
+                                <div>
+                                    <label for="plan-upload" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Upload Speed (Mbps)</label>
+                                    <input type="number" id="plan-upload" required class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm dark:bg-gray-700">
+                                </div>
+                                <div>
+                                    <label for="plan-download" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Download Speed (Mbps)</label>
+                                    <input type="number" id="plan-download" required class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm dark:bg-gray-700">
+                                </div>
+                            </div>
+                            <div>
+                                <label for="plan-payment-link" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Paystack Link</label>
+                                <input type="text" id="plan-payment-link" required class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm dark:bg-gray-700">
+                            </div>
+                            <div class="flex space-x-4">
+                                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition duration-150">
+                                    Save Plan
+                                </button>
+                                <button type="button" id="cancel-edit-plan" class="w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-md transition duration-150 hidden">
+                                    Cancel Edit
+                                </button>
+                            </div>
+                             <p id="plan-save-status" class="text-green-500 text-sm mt-2 text-center"></p>
+                        </form>
+
+                        <h3 class="text-2xl font-semibold mb-4">Existing Plans</h3>
+                        <div id="admin-plan-list" class="space-y-4">
+                            <!-- Admin plan list will be injected here -->
+                        </div>
+                    </div>
+
+                    <!-- ===== Vouchers Tab ===== -->
+                    <div id="tab-vouchers" class="admin-tab hidden">
+                        <form id="voucher-form" class="space-y-6 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mb-8">
+                            <h3 class="text-xl font-semibold">Generate New Voucher</h3>
+                            <div>
+                                <label for="voucher-plan" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Select Plan</label>
+                                <select id="voucher-plan" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm dark:bg-gray-700"></select>
+                            </div>
+                            <div>
+                                <label for="voucher-code" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Voucher Code</label>
+                                <div class="flex space-x-2">
+                                    <input type="text" id="voucher-code" required class="block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm dark:bg-gray-700">
+                                    <button type="button" id="generate-code-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-md">Generate</button>
+                                </div>
+                            </div>
+                            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition duration-150">
+                                Add Voucher
+                            </button>
+                            <p id="voucher-save-status" class="text-green-500 text-sm mt-2 text-center"></p>
+                        </form>
+
+                        <h3 class="text-2xl font-semibold mb-4">Generated Vouchers</h3>
+                        <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg overflow-hidden">
+                            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                <thead class="bg-gray-50 dark:bg-gray-700">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Code</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Plan</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
+                                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-voucher-list" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                    <!-- Voucher rows will be injected here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- ===== Manual Payments Tab ===== -->
+                    <div id="tab-payments" class="admin-tab hidden">
+                        <div id="admin-payment-list" class="space-y-4">
+                            <!-- Payment cards will be injected here -->
+                            <p id="no-payments-msg" class="text-gray-500">No pending payments found.</p>
+                        </div>
+                    </div>
+
+                    <!-- ===== Credentials Tab ===== -->
+                    <div id="tab-credentials" class="admin-tab hidden">
+                        <form id="credentials-form" class="space-y-6 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md max-w-lg mx-auto">
+                            <div>
+                                <label for="new-username" class="block text-sm font-medium text-gray-700 dark:text-gray-300">New Username</label>
+                                <input type="text" id="new-username" required class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm dark:bg-gray-700 focus:border-blue-500 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label for="new-password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">New Password</label>
+                                <input type="password" id="new-password" required class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm dark:bg-gray-700 focus:border-blue-500 focus:ring-blue-500">
+                            </div>
+                            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition duration-150">
+                                Update Credentials
+                            </button>
+                            <p id="credentials-save-status" class="text-green-500 text-sm mt-2 text-center"></p>
+                        </form>
+                    </div>
+
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-10 right-10 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg hidden z-50">
+        <span id="toast-message"></span>
+    </div>
+
+
+    <!-- ===== Firebase and App Logic ===== -->
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { 
+            getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, 
+            collection, onSnapshot, addDoc, query, where, getDocs, serverTimestamp,
+            setLogLevel
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- App State ---
+        let db, auth, userId, appId;
+        let adminLoggedIn = false;
+        let currentSettings = {};
+        let allPlans = [];
+
+        // --- Firebase Config ---
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+        // --- DOM Elements ---
+        const $ = (selector) => document.querySelector(selector);
+        const $$ = (selector) => document.querySelectorAll(selector);
+        const loadingEl = $('#app-loading');
+        const authStatusEl = $('#auth-status');
+        const adminLoginViewEl = $('#admin-login-view');
+        const adminDashboardViewEl = $('#admin-dashboard-view');
+
+        // --- Toast Notification ---
+        function showToast(message, success = true) {
+            const toast = $('#toast');
+            const toastMessage = $('#toast-message');
+            toastMessage.textContent = message;
+            toast.classList.remove('hidden');
+            toast.classList.toggle('bg-green-600', success);
+            toast.classList.toggle('bg-red-600', !success);
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3000);
+        }
+
+        // --- Dark Mode ---
+        const html = document.documentElement;
+        const darkModeToggle = $('#dark-mode-toggle');
+        const themeIconDark = $('#theme-icon-dark');
+        const themeIconLight = $('#theme-icon-light');
+
+        const setMode = (dark) => {
+            if (dark) {
+                html.classList.add('dark');
+                themeIconDark.classList.add('hidden');
+                themeIconLight.classList.remove('hidden');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                html.classList.remove('dark');
+                themeIconDark.classList.remove('hidden');
+                themeIconLight.classList.add('hidden');
+                localStorage.setItem('theme', 'light');
+            }
+        };
+
+        darkModeToggle.addEventListener('click', () => {
+            setMode(!html.classList.contains('dark'));
+        });
+
+        // Check saved theme
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            setMode(true);
+        } else {
+            setMode(false);
+        }
+
+        // --- Router ---
+        function showView(viewName) {
+            [adminLoginViewEl, adminDashboardViewEl].forEach(el => el.classList.add('hidden'));
+            if (viewName === 'admin-login') adminLoginViewEl.classList.remove('hidden');
+            else if (viewName === 'admin-dashboard') adminDashboardViewEl.classList.remove('hidden');
+        }
+
+        // --- Admin Dashboard Navigation ---
+        const tabTitles = {
+            "#settings": "General Settings",
+            "#plans": "Manage Data Plans",
+            "#vouchers": "Manage Vouchers",
+            "#payments": "Manual Payments",
+            "#credentials": "Change Admin Credentials"
+        };
+        $$('.admin-nav-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const targetTab = e.currentTarget.getAttribute('href');
+                
+                // Update active link
+                $$('.admin-nav-link').forEach(l => l.classList.remove('bg-gray-200', 'dark:bg-gray-700'));
+                e.currentTarget.classList.add('bg-gray-200', 'dark:bg-gray-700');
+                
+                // Show target tab
+                $$('.admin-tab').forEach(tab => tab.classList.add('hidden'));
+                $(targetTab).classList.remove('hidden');
+
+                // Update tab title
+                $('#tab-title').textContent = tabTitles[targetTab] || "Dashboard";
+            });
+        });
+
+        // --- Firebase Initialization ---
+        async function initFirebase() {
+            try {
+                authStatusEl.textContent = 'Initializing app...';
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                setLogLevel('Debug');
+                authStatusEl.textContent = 'Authenticating...';
+
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        authStatusEl.textContent = `Authenticated as ${user.uid.substring(0, 8)}`;
+                        userId = user.uid;
+                        await checkAndInitDefaults();
+                        startAppListeners();
+                        loadingEl.classList.add('hidden');
+                        showView('admin-login'); // Default to login, login check will redirect
+                    } else {
+                        // Not authenticated, try to sign in
+                        try {
+                            if (initialAuthToken) {
+                                await signInWithCustomToken(auth, initialAuthToken);
+                            } else {
+                                await signInAnonymously(auth);
+                            }
+                        } catch (err) {
+                            console.error('Sign-in error:', err);
+                            authStatusEl.textContent = 'Authentication failed. Please reload.';
+                        }
+                    }
+                });
+
+            } catch (err) {
+                console.error("Firebase init failed:", err);
+                authStatusEl.textContent = 'Error connecting to services. Check console.';
+            }
+        }
+
+        // --- Initial Data Seeding ---
+        async function checkAndInitDefaults() {
+            authStatusEl.textContent = 'Checking database...';
+            const settingsRef = doc(db, `artifacts/${appId}/public/data/settings`, 'config');
+            const settingsSnap = await getDoc(settingsRef);
+
+            if (!settingsSnap.exists()) {
+                authStatusEl.textContent = 'Setting up defaults...';
+                // Set default settings
+                await setDoc(settingsRef, {
+                    webName: "HOG Network",
+                    logoUrl: "https://placehold.co/150x50/000000/FFFFFF?text=HOG+Network",
+                    bgUrl: "https://placehold.co/1920x1080/EEEEEE/333333?text=Welcome",
+                    whatsApp: "+2349120461800",
+                    notification: "Welcome! Contact admin on WhatsApp for your voucher after payment.",
+                    adminEmail: "igweemmanuel@aol.com",
+                    merchantEmail: "igweemmanuel@aol.com",
+                    redirectUrl: "HOG Network", 
+                    manualBank: {
+                        bankName: "OPAY BANK",
+                        accountNumber: "6142233479",
+                        accountName: "KIZZY COMMUNICATION LINK"
+                    }
+                });
+
+                // Set default admin credentials
+                const adminRef = doc(db, `artifacts/${appId}/public/data/admin`, 'credentials');
+                await setDoc(adminRef, {
+                    username: "admin",
+                    password: "password123"
+                });
+
+                // Set default plans
+                const plansCol = collection(db, `artifacts/${appId}/public/data/plans`);
+                await addDoc(plansCol, {
+                    data: "1GB", price: 320, validity: "24Hours", devices: 1, upload: 5, download: 8,
+                    paymentLink: "https://paystack.shop/pay/asyhox1k9b"
+                });
+                await addDoc(plansCol, {
+                    data: "12GB", price: 3400, validity: "12Days", devices: 1, upload: 5, download: 8,
+                    paymentLink: "https://paystack.shop/pay/wl5obvswf8"
+                });
+                await addDoc(plansCol, {
+                    data: "20GB", price: 5500, validity: "30Days", devices: 1, upload: 5, download: 8,
+                    paymentLink: "https://paystack.shop/pay/2w6t3iv586"
+                });
+                authStatusEl.textContent = 'Defaults set.';
+            }
+        }
+
+        // --- Real-time Listeners ---
+        function startAppListeners() {
+            // 1. Settings Listener
+            const settingsRef = doc(db, `artifacts/${appId}/public/data/settings`, 'config');
+            onSnapshot(settingsRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    currentSettings = docSnap.data();
+                    updateUISettings(currentSettings);
+                }
+            });
+
+            // 2. Plans Listener
+            const plansCol = collection(db, `artifacts/${appId}/public/data/plans`);
+            onSnapshot(plansCol, (snapshot) => {
+                allPlans = [];
+                let adminPlanHtml = '';
+                let voucherPlanOptions = '<option value="">Select Plan</option>';
+                
+                snapshot.forEach(doc => {
+                    const plan = { ...doc.data(), id: doc.id };
+                    allPlans.push(plan);
+                    
+                    // Render for Admin View
+                    adminPlanHtml += `
+                        <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg shadow flex justify-between items-center">
+                            <div>
+                                <p class="font-bold text-lg">${plan.data} - ₦${plan.price}</p>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">${plan.validity} | ${plan.devices} device(s)</p>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Speed: ${plan.upload}Mbps Up / ${plan.download}Mbps Down</p>
+                                <p class="text-xs text-gray-400 truncate w-64">Link: ${plan.paymentLink}</p>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button class="edit-plan-btn p-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-md" data-id="${plan.id}">Edit</button>
+                                <button class="delete-plan-btn p-2 bg-red-600 hover:bg-red-700 text-white rounded-md" data-id="${plan.id}">Delete</button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Options for Voucher form
+                    voucherPlanOptions += `<option value="${plan.id}" data-name="${plan.data} ${plan.validity}">${plan.data} (${plan.validity})</option>`;
+                });
+                
+                $('#admin-plan-list').innerHTML = adminPlanHtml || '<p class="text-gray-500">No data plans created yet.</p>';
+                $('#voucher-plan').innerHTML = voucherPlanOptions;
+            });
+            
+            // 3. Vouchers Listener (Admin)
+            const vouchersCol = collection(db, `artifacts/${appId}/public/data/vouchers`);
+            onSnapshot(vouchersCol, (snapshot) => {
+                let adminVoucherHtml = '';
+                snapshot.forEach(doc => {
+                    const voucher = { ...doc.data(), id: doc.id };
+                    adminVoucherHtml += `
+                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">${voucher.code}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">${voucher.planName}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${voucher.status === 'used' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}">
+                                    ${voucher.status}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <button class="mark-used-btn text-yellow-600 hover:text-yellow-900 mr-3" data-id="${voucher.id}" data-status="${voucher.status}">${voucher.status === 'used' ? 'Mark New' : 'Mark Used'}</button>
+                                <button class="delete-voucher-btn text-red-600 hover:text-red-900" data-id="${voucher.id}">Delete</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                $('#admin-voucher-list').innerHTML = adminVoucherHtml || '<tr><td colspan="4" class="text-center py-4 text-gray-500">No vouchers generated.</td></tr>';
+            });
+            
+            // 4. Manual Payments Listener (Admin)
+            const paymentsCol = collection(db, `artifacts/${appId}/public/data/manual_payments`);
+            const q = query(paymentsCol, where("status", "==", "pending"));
+            onSnapshot(q, (snapshot) => {
+                let adminPaymentHtml = '';
+                snapshot.forEach(doc => {
+                    const payment = { ...doc.data(), id: doc.id };
+                    adminPaymentHtml += `
+                        <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-lg font-semibold">${payment.planName} - ₦${payment.price}</p>
+                                    <p class="text-sm text-gray-600 dark:text-gray-300">From: ${payment.userContact}</p>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Submitted: ${payment.timestamp ? new Date(payment.timestamp.seconds * 1000).toLocaleString() : 'N/A'}</p>
+                                    <a href="${payment.proofUrl}" target="_blank" class="text-blue-500 hover:underline text-sm">View Proof</a>
+                                </div>
+                                <span class="px-3 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">Pending</span>
+                            </div>
+                            <div class="mt-4 flex space-x-2">
+                                <button class="approve-payment-btn w-full bg-green-500 hover:bg-green-600 text-white py-2 rounded-md" data-id="${doc.id}">Approve</button>
+                                <button class="reject-payment-btn w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-md" data-id="${doc.id}">Reject</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                $('#admin-payment-list').innerHTML = adminPaymentHtml || '';
+                $('#no-payments-msg').classList.toggle('hidden', snapshot.size > 0);
+            });
+        }
+
+        // --- UI Update Functions ---
+        function updateUISettings(settings) {
+            // Admin Login View
+            $('#admin-logo').src = settings.logoUrl || 'https://placehold.co/150x50/000000/FFFFFF?text=HOG+Network';
+            
+            // Admin Dashboard View
+            $('#admin-dash-logo').src = settings.logoUrl || 'https://placehold.co/150x50/000000/FFFFFF?text=HOG+Network';
+            $('#admin-dash-web-name').textContent = settings.webName || 'Admin';
+            
+            // Admin Settings Form
+            $('#web-name').value = settings.webName || '';
+            $('#logo-url').value = settings.logoUrl || '';
+            $('#bg-url').value = settings.bgUrl || '';
+            $('#whatsapp-number').value = settings.whatsApp || '';
+            $('#notification-text').value = settings.notification || '';
+            $('#admin-email').value = settings.adminEmail || '';
+            $('#merchant-email').value = settings.merchantEmail || '';
+            $('#redirect-url').value = settings.redirectUrl || '';
+            $('#bank-name').value = settings.manualBank?.bankName || '';
+            $('#account-number').value = settings.manualBank?.accountNumber || '';
+            $('#account-name').value = settings.manualBank?.accountName || '';
+        }
+
+        // --- Event Listeners ---
+
+        // Admin: Login
+        $('#admin-login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = $('#username').value;
+            const password = $('#password').value;
+            const errorEl = $('#login-error');
+            errorEl.textContent = '';
+            
+            try {
+                const adminRef = doc(db, `artifacts/${appId}/public/data/admin`, 'credentials');
+                const docSnap = await getDoc(adminRef);
+                
+                if (docSnap.exists()) {
+                    const creds = docSnap.data();
+                    if (creds.username === username && creds.password === password) {
+                        adminLoggedIn = true;
+                        showView('admin-dashboard');
+                    } else {
+                        errorEl.textContent = 'Invalid username or password.';
+                    }
+                } else {
+                    errorEl.textContent = 'Login error. No credentials found.';
+                }
+            } catch (err) {
+                console.error("Login error:", err);
+                errorEl.textContent = 'An error occurred. Check console.';
+            }
+        });
+
+        // Admin: Logout
+        $('#admin-logout').addEventListener('click', (e) => {
+            e.preventDefault();
+            adminLoggedIn = false;
+            showView('admin-login');
+            $('#username').value = '';
+            $('#password').value = '';
+        });
+
+        // Admin: Save Settings
+        $('#settings-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const statusEl = $('#settings-save-status');
+            statusEl.textContent = 'Saving...';
+            try {
+                const settingsRef = doc(db, `artifacts/${appId}/public/data/settings`, 'config');
+                await setDoc(settingsRef, {
+                    webName: $('#web-name').value,
+                    logoUrl: $('#logo-url').value,
+                    bgUrl: $('#bg-url').value,
+                    whatsApp: $('#whatsapp-number').value,
+                    notification: $('#notification-text').value,
+                    adminEmail: $('#admin-email').value,
+                    merchantEmail: $('#merchant-email').value,
+                    redirectUrl: $('#redirect-url').value,
+                    manualBank: {
+                        bankName: $('#bank-name').value,
+                        accountNumber: $('#account-number').value,
+                        accountName: $('#account-name').value
+                    }
+                });
+                statusEl.textContent = 'Settings saved!';
+                showToast('Settings saved successfully!');
+                setTimeout(() => statusEl.textContent = '', 2000);
+            } catch (err) {
+                console.error("Save settings error: ", err);
+                statusEl.textContent = 'Error saving settings.';
+                showToast('Error saving settings.', false);
+            }
+        });
+
+        // Admin: Save Credentials
+        $('#credentials-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const statusEl = $('#credentials-save-status');
+            statusEl.textContent = 'Saving...';
+            try {
+                const adminRef = doc(db, `artifacts/${appId}/public/data/admin`, 'credentials');
+                await setDoc(adminRef, {
+                    username: $('#new-username').value,
+                    password: $('#new-password').value
+                });
+                statusEl.textContent = 'Credentials updated! You will need to use these next time.';
+                showToast('Credentials updated!');
+                e.target.reset();
+                setTimeout(() => statusEl.textContent = '', 3000);
+            } catch (err) {
+                console.error("Save credentials error: ", err);
+                statusEl.textContent = 'Error saving credentials.';
+                showToast('Error saving credentials.', false);
+            }
+        });
+
+        // Admin: Plan Form Submit (Add/Edit)
+        $('#plan-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const planId = $('#plan-id').value;
+            const statusEl = $('#plan-save-status');
+            statusEl.textContent = 'Saving...';
+            
+            const planData = {
+                data: $('#plan-data').value,
+                price: Number($('#plan-price').value),
+                validity: $('#plan-validity').value,
+                devices: Number($('#plan-devices').value),
+                upload: Number($('#plan-upload').value),
+                download: Number($('#plan-download').value),
+                paymentLink: $('#plan-payment-link').value
+            };
+            
+            try {
+                if (planId) {
+                    // Update
+                    const planRef = doc(db, `artifacts/${appId}/public/data/plans`, planId);
+                    await setDoc(planRef, planData);
+                    statusEl.textContent = 'Plan updated!';
+                    showToast('Plan updated!');
+                } else {
+                    // Add new
+                    const plansCol = collection(db, `artifacts/${appId}/public/data/plans`);
+                    await addDoc(plansCol, planData);
+                    statusEl.textContent = 'Plan added!';
+                    showToast('Plan added!');
+                }
+                resetPlanForm();
+                setTimeout(() => statusEl.textContent = '', 2000);
+            } catch (err) {
+                console.error("Save plan error: ", err);
+                statusEl.textContent = 'Error saving plan.';
+                showToast('Error saving plan.', false);
+            }
+        });
+
+        function resetPlanForm() {
+            $('#plan-form').reset();
+            $('#plan-id').value = '';
+            $('#plan-form-title').textContent = 'Add New Plan';
+            $('#cancel-edit-plan').classList.add('hidden');
+        }
+
+        $('#cancel-edit-plan').addEventListener('click', resetPlanForm);
+
+        // Admin: Plan List Buttons (Edit/Delete)
+        $('#admin-plan-list').addEventListener('click', (e) => {
+            const btn = e.target;
+            const id = btn.dataset.id;
+            
+            if (btn.classList.contains('edit-plan-btn')) {
+                const plan = allPlans.find(p => p.id === id);
+                if (plan) {
+                    $('#plan-id').value = plan.id;
+                    $('#plan-data').value = plan.data;
+                    $('#plan-price').value = plan.price;
+                    $('#plan-validity').value = plan.validity;
+                    $('#plan-devices').value = plan.devices;
+                    $('#plan-upload').value = plan.upload;
+                    $('#plan-download').value = plan.download;
+                    $('#plan-payment-link').value = plan.paymentLink;
+                    $('#plan-form-title').textContent = 'Edit Plan';
+                    $('#cancel-edit-plan').classList.remove('hidden');
+                    window.scrollTo(0, 0);
+                }
+            }
+            
+            if (btn.classList.contains('delete-plan-btn')) {
+                if (confirm('Are you sure you want to delete this plan?')) {
+                    const planRef = doc(db, `artifacts/${appId}/public/data/plans`, id);
+                    deleteDoc(planRef).then(() => showToast('Plan deleted!'))
+                        .catch(err => showToast('Error deleting plan.', false));
+                }
+            }
+        });
+
+        // Admin: Voucher Form
+        $('#generate-code-btn').addEventListener('click', () => {
+            $('#voucher-code').value = Math.random().toString(36).substring(2, 10).toUpperCase();
+        });
+
+        $('#voucher-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const statusEl = $('#voucher-save-status');
+            const selectedOption = $('#voucher-plan').options[$('#voucher-plan').selectedIndex];
+            
+            if (!selectedOption.value) {
+                statusEl.textContent = 'Please select a plan.';
+                return;
+            }
+            
+            statusEl.textContent = 'Saving...';
+            const voucherData = {
+                code: $('#voucher-code').value,
+                planId: selectedOption.value,
+                planName: selectedOption.dataset.name,
+                status: 'new' // 'new' or 'used'
+            };
+            
+            try {
+                const vouchersCol = collection(db, `artifacts/${appId}/public/data/vouchers`);
+                await addDoc(vouchersCol, voucherData);
+                statusEl.textContent = 'Voucher added!';
+                showToast('Voucher added!');
+                e.target.reset();
+                setTimeout(() => statusEl.textContent = '', 2000);
+            } catch (err) {
+                console.error("Add voucher error: ", err);
+                statusEl.textContent = 'Error adding voucher.';
+                showToast('Error adding voucher.', false);
+            }
+        });
+
+        // Admin: Voucher List Buttons (Mark Used/Delete)
+        $('#admin-voucher-list').addEventListener('click', async (e) => {
+            const btn = e.target;
+            const id = btn.dataset.id;
+            
+            try {
+                if (btn.classList.contains('mark-used-btn')) {
+                    const newStatus = btn.dataset.status === 'used' ? 'new' : 'used';
+                    const voucherRef = doc(db, `artifacts/${appId}/public/data/vouchers`, id);
+                    await updateDoc(voucherRef, { status: newStatus });
+                    showToast(`Voucher marked as ${newStatus}.`);
+                }
+                
+                if (btn.classList.contains('delete-voucher-btn')) {
+                    if (confirm('Are you sure you want to delete this voucher?')) {
+                        const voucherRef = doc(db, `artifacts/${appId}/public/data/vouchers`, id);
+                        await deleteDoc(voucherRef);
+                        showToast('Voucher deleted!');
+                    }
+                }
+            } catch (err) {
+                console.error("Voucher action error: ", err);
+                showToast('Error updating voucher.', false);
+            }
+        });
+        
+        // Admin: Manual Payment Buttons (Approve/Reject)
+        $('#admin-payment-list').addEventListener('click', async (e) => {
+            const btn = e.target;
+            const id = btn.dataset.id;
+            
+            try {
+                if (btn.classList.contains('approve-payment-btn')) {
+                    const paymentRef = doc(db, `artifacts/${appId}/public/data/manual_payments`, id);
+                    await updateDoc(paymentRef, { status: 'approved' });
+                    showToast('Payment approved.');
+                }
+                
+                if (btn.classList.contains('reject-payment-btn')) {
+                    const paymentRef = doc(db, `artifacts/${appId}/public/data/manual_payments`, id);
+                    await updateDoc(paymentRef, { status: 'rejected' });
+                    showToast('Payment rejected.');
+                }
+            } catch (err) {
+                console.error("Payment update error: ", err);
+                showToast('Error updating payment.', false);
+            }
+        });
+
+        // --- Start App ---
+        initFirebase();
+
+    </script>
+</body>
+</html>
